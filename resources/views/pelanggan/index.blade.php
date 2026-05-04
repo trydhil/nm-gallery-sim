@@ -184,7 +184,7 @@
                                 </button>
 
                                 {{-- Buat Sewa: ikon clipboard menggantikan 📋 --}}
-                                @if(session('user')['role'] == 'Karyawan')
+                               
                                     <a href="{{ route('transaksi.create') }}?pelanggan={{ $item->id_pelanggan }}"
                                        class="row-btn"
                                        title="Buat transaksi sewa"
@@ -197,11 +197,11 @@
                                             <line x1="9" y1="16" x2="13" y2="16"/>
                                         </svg>
                                     </a>
-                                @else
+                                
                                     {{-- Owner: tombol non-aktif dengan visual disabled --}}
                                     <button class="row-btn"
                                             onclick="showAccessDeniedSewa()"
-                                            title="Hanya untuk Karyawan"
+                                            
                                             style="opacity:.4;cursor:not-allowed">
                                         <svg width="14" height="14" viewBox="0 0 24 24" fill="none"
                                              stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
@@ -209,7 +209,6 @@
                                             <rect x="9" y="3" width="6" height="4" rx="1"/>
                                         </svg>
                                     </button>
-                                @endif
                             </div>
                         </td>
                     </tr>
@@ -354,10 +353,6 @@ function updateCount(v, t) {
     if (el) el.textContent = `Menampilkan ${v} dari ${t} pelanggan`;
 }
 
-function showAccessDeniedSewa() {
-    if (window.showAccessDenied) showAccessDenied('Transaksi & E-Nota', 'Karyawan');
-    else alert('Fitur ini hanya untuk Karyawan.');
-}
 
 /* ── Tambah ── */
 function showTambahPelangganModal() {

@@ -48,6 +48,8 @@ Route::middleware('auth.session')->group(function () {
         Route::post('/draft/save',       [TransaksiController::class, 'saveDraft'])->name('draft.save');
         Route::get('/draft/list',        [TransaksiController::class, 'getDrafts'])->name('draft.list');
         Route::delete('/draft/{id}',     [TransaksiController::class, 'deleteDraft'])->name('draft.delete');
+
+        Route::post('/transaksi/pos/store', [TransaksiController::class, 'storePos'])->name('transaksi.store.pos');
     });
 
     // ── Owner-only routes ────────────────────────────────────────────────────

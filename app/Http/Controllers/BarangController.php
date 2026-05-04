@@ -206,6 +206,15 @@ class BarangController extends Controller
             ]);
         }
 
+        // Cek apakah barang pernah disewa (ada di tabel detail_transaksi)
+        $hasTransactions = \App\Models\DetailTransaksi::where('id_barang', $id)->exists();
+        if ($hasTransactions) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Barang ini sudah memiliki riwayat transaksi dan tidak bisa dihapus!',
+            ]);
+        }
+
         if ($barang->foto && file_exists(public_path($barang->foto))) {
             unlink(public_path($barang->foto));
         }

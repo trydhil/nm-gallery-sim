@@ -92,20 +92,113 @@ a { text-decoration: none; color: inherit; }
   overflow: hidden;
   z-index: 30;
 
-  /*
-   * Transisi lebar: saat class .sidebar-collapsed ditambahkan ke <body>,
-   * sidebar akan menyusut ke 0 secara halus selama 0.28s.
-   * Kita animasikan width DAN min-width sekaligus karena flexbox
-   * menggunakan min-width sebagai batas bawah penyusutan.
-   */
+
   transition: width 0.28s cubic-bezier(.4,0,.2,1),
               min-width 0.28s cubic-bezier(.4,0,.2,1);
 }
 
 /* State collapsed: sidebar benar-benar tersembunyi */
+/* ── COLLAPSED: icon-only sidebar (68px) ── */
 body.sidebar-collapsed .sidebar {
-  width: 0;
-  min-width: 0;
+  width: 65px;
+  min-width: 65px;
+}
+
+/* Sembunyikan teks & elemen non-ikon saat collapsed */
+body.sidebar-collapsed .logo-words,
+body.sidebar-collapsed .s-label,
+body.sidebar-collapsed .nav-pill,
+body.sidebar-collapsed .s-uname,
+body.sidebar-collapsed .s-urole,
+body.sidebar-collapsed .s-chevron {
+  display: none;
+}
+
+/* Logo: hanya tampilkan ikon, tengah */
+body.sidebar-collapsed .s-logo {
+  padding: 18px 8px;
+  justify-content: center;
+}
+
+/* Nav item: tengahkan ikon, hapus teks */
+body.sidebar-collapsed .nav-item {
+  margin: 1px 4px;
+  padding: 9px;
+  justify-content: center;
+  overflow: visible; /* penting agar tooltip tidak terpotong */
+}
+
+/* Sembunyikan teks nav (node text langsung, bukan ikon) */
+body.sidebar-collapsed .nav-item > span:not(.nav-pill),
+body.sidebar-collapsed .nav-item > br {
+  display: none;
+}
+
+/* Footer user: tengahkan avatar */
+body.sidebar-collapsed .s-footer {
+  padding: 8px 4px 12px;
+}
+body.sidebar-collapsed .s-user {
+  padding: 9px;
+  justify-content: center;
+}
+
+/* ── TOOLTIP saat collapsed ── */
+body.sidebar-collapsed .nav-item[data-label]::after {
+  content: attr(data-label);
+  position: absolute;
+  left: calc(100% + 10px);
+  top: 50%;
+  transform: translateY(-50%);
+  background: var(--black3);
+  color: var(--gold-lt);
+  border: 1px solid var(--gold-rim);
+  padding: 5px 11px;
+  border-radius: var(--r);
+  font-size: 12px;
+  font-weight: 500;
+  white-space: nowrap;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity .15s ease;
+  z-index: 200;
+  box-shadow: var(--sh-gold);
+}
+body.sidebar-collapsed .nav-item[data-label]:hover::after {
+  opacity: 1;
+}
+
+/* Tooltip user avatar saat collapsed */
+body.sidebar-collapsed .s-user[data-label]::after {
+  content: attr(data-label);
+  position: absolute;
+  left: calc(100% + 10px);
+  top: 50%;
+  transform: translateY(-50%);
+  background: var(--black3);
+  color: rgba(255,255,255,.8);
+  border: 1px solid rgba(255,255,255,.12);
+  padding: 5px 11px;
+  border-radius: var(--r);
+  font-size: 12px;
+  font-weight: 500;
+  white-space: nowrap;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity .15s ease;
+  z-index: 200;
+  box-shadow: var(--sh-md);
+}
+body.sidebar-collapsed .s-user[data-label]:hover::after {
+  opacity: 1;
+}
+
+/* Pastikan sidebar-collapsed tidak override mobile behavior */
+@media (max-width: 768px) {
+  body.sidebar-collapsed .sidebar {
+    width: var(--sidebar) !important;
+    min-width: var(--sidebar) !important;
+  }
 }
 
 .sidebar::before {
@@ -199,7 +292,7 @@ body.sidebar-collapsed .sidebar {
   background: var(--gold);
   border-radius: 0 2px 2px 0;
 }
-.n-ico { width: 15px; height: 15px; flex-shrink: 0; opacity: .6; }
+.n-ico { width: 20px; height: 20px; flex-shrink: 0; opacity: .8; }
 .nav-item.active .n-ico { opacity: 1; }
 
 .nav-pill {
@@ -371,58 +464,41 @@ body.sidebar-collapsed .sidebar {
  * Animasinya sederhana — tiga garis yang bertransisi menjadi panah.
  */
 .sidebar-toggle-btn {
-  width: 32px; height: 32px;
+  width: 34px; height: 34px;
   border-radius: var(--r2);
-  border: 1px solid var(--gray-200);
-  background: transparent;
+  border: 1.5px solid var(--gray-200);
+  background: var(--white);
   cursor: pointer;
   display: flex; align-items: center; justify-content: center;
   flex-shrink: 0;
-  transition: all .15s;
-  color: var(--gray-500);
+  transition: all .18s;
+  color: var(--gray-600);
+  font-size: 17px;
+  box-shadow: var(--sh-xs);
+  position: relative;
 }
 .sidebar-toggle-btn:hover {
-  background: var(--gray-100);
-  border-color: var(--gray-300);
-  color: var(--black);
+  background: var(--gold-xs);
+  border-color: var(--gold-rim);
+  color: var(--gold-dk);
 }
-/* Ikon hamburger dibuat dari pseudo-elements + box-shadow */
-.hamburger {
-  width: 14px; height: 2px;
-  background: currentColor;
-  border-radius: 2px;
-  position: relative;
-  transition: all .22s ease;
-}
-.hamburger::before,
-.hamburger::after {
-  content: '';
-  position: absolute;
-  left: 0;
-  width: 100%; height: 2px;
-  background: currentColor;
-  border-radius: 2px;
-  transition: all .22s ease;
-}
-.hamburger::before { top: -5px; }
-.hamburger::after  { top: 5px; width: 10px; } /* lebih pendek untuk estetika */
 
-/* Saat sidebar collapsed, hamburger berubah menjadi tanda ">" */
-body.sidebar-collapsed .hamburger {
-  background: var(--gold-dk);
+/* Ikon saat sidebar TERBUKA */
+.sidebar-toggle-btn .ico-open  { display: flex; }
+.sidebar-toggle-btn .ico-close { display: none; }
+
+/* Saat sidebar TERTUTUP — tukar ikon, ubah tampilan tombol */
+body.sidebar-collapsed .sidebar-toggle-btn {
+  background: var(--black);
+  border-color: var(--gold-rim);
+  color: var(--gold-lt);
+  box-shadow: var(--sh-gold);
 }
-body.sidebar-collapsed .hamburger::before {
-  top: -4px;
-  transform: rotate(35deg);
-  width: 8px;
-  transform-origin: left;
+body.sidebar-collapsed .sidebar-toggle-btn:hover {
+  background: var(--black3);
 }
-body.sidebar-collapsed .hamburger::after {
-  top: 2px;
-  transform: rotate(-35deg);
-  width: 8px;
-  transform-origin: left;
-}
+body.sidebar-collapsed .sidebar-toggle-btn .ico-open  { display: none; }
+body.sidebar-collapsed .sidebar-toggle-btn .ico-close { display: flex; }
 
 .tb-breadcrumb { display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--gray-400); }
 .tb-breadcrumb .sep { opacity: .5; }
@@ -843,10 +919,14 @@ body.mob-sidebar-open .sidebar-backdrop {
        width:0%;z-index:9999;opacity:0;pointer-events:none"></div>
 
 @php
-    $userRole    = session('user')['role'] ?? null;
-    $userName    = session('user')['nama_lengkap'] ?? 'User';
-    $userInitial = strtoupper(substr($userName, 0, 1));
-    $totalBarang = \App\Models\Barang::count();
+    $userRole      = session('user')['role'] ?? null;
+    $userName      = session('user')['nama_lengkap'] ?? 'User';
+    $userInitial   = strtoupper(substr($userName, 0, 1));
+    $totalBarang   = \App\Models\Barang::count();
+    $trxAktifCount = \App\Models\Transaksi::where('status_transaksi', 'Diproses')->count();
+    $trxTelat      = \App\Models\Transaksi::where('status_transaksi', 'Diproses')
+                        ->where('tgl_jatuh_tempo', '<', now()->startOfDay())
+                        ->count();
 @endphp
 
 {{-- ════════════════════════════════════════════════════
@@ -857,67 +937,67 @@ body.mob-sidebar-open .sidebar-backdrop {
     <div class="s-logo">
         <div class="logo-icon">N</div>
         <div class="logo-words">
-            <div class="logo-name">NM Gallery</div>
+            <div class="logo-name" >NM Gallery</div>
             <div class="logo-sub">SIM Baju Bodo</div>
         </div>
     </div>
 
     <div class="s-label">Menu</div>
 
-    <a href="{{ route('barang.index') }}"
+    <a href="{{ route('barang.index') }}" data-label="Inventaris &amp; Stok"
        class="nav-item {{ request()->routeIs('barang.*') ? 'active' : '' }}">
         <svg class="n-ico" viewBox="0 0 20 20" fill="currentColor">
             <path d="M7 3a1 1 0 000 2h6a1 1 0 100-2H7zM4 7a1 1 0 011-1h10a1 1 0 110 2H5a1 1 0 01-1-1zM2 11a2 2 0 012-2h12a2 2 0 012 2v4a2 2 0 01-2 2H4a2 2 0 01-2-2v-4z"/>
         </svg>
-        Inventaris &amp; Stok
+        <span>Inventaris &amp; Stok</span>
         <span class="nav-pill info">{{ $totalBarang }}</span>
     </a>
     
-    <a href="{{ route('transaksi.index') }}"
+    <a href="{{ route('transaksi.index') }}" data-label="Transaksi &amp; E-Nota"
        class="nav-item {{ request()->routeIs('transaksi.*') ? 'active' : '' }}">
         <svg class="n-ico" viewBox="0 0 20 20" fill="currentColor">
             <path fill-rule="evenodd" d="M4 4a2 2 0 00-2 2v4a2 2 0 002 2V6h10a2 2 0 00-2-2H4zm2 6a2 2 0 012-2h8a2 2 0 012 2v4a2 2 0 01-2 2H8a2 2 0 01-2-2v-4zm6 4a2 2 0 100-4 2 2 0 000 4z" clip-rule="evenodd"/>
         </svg>
-        Transaksi &amp; E-Nota
+        <span>Transaksi &amp; E-Nota</span>
     </a>
 
     @if($userRole === 'Owner')
-    <a href="{{ route('laporan') }}"
+    <a href="{{ route('laporan') }}" data-label="Laporan Keuangan"
        class="nav-item {{ request()->routeIs('laporan') ? 'active' : '' }}">
         <svg class="n-ico" viewBox="0 0 20 20" fill="currentColor">
             <path d="M2 11a1 1 0 011-1h2a1 1 0 011 1v5a1 1 0 01-1 1H3a1 1 0 01-1-1v-5zm6-4a1 1 0 011-1h2a1 1 0 011 1v9a1 1 0 01-1 1H9a1 1 0 01-1-1V7zm6-3a1 1 0 011-1h2a1 1 0 011 1v12a1 1 0 01-1 1h-2a1 1 0 01-1-1V4z"/>
         </svg>
-        Laporan Keuangan
+        <span>Laporan Keuangan</span>
     </a>
     @endif
 
     <div class="s-label" style="margin-top:8px">Lainnya</div>
 
-    <a href="{{ route('pelanggan.index') }}"
+    <a href="{{ route('pelanggan.index') }}" data-label="Pelanggan"
        class="nav-item {{ request()->routeIs('pelanggan.*') ? 'active' : '' }}">
         <svg class="n-ico" viewBox="0 0 20 20" fill="currentColor">
             <path d="M13 6a3 3 0 11-6 0 3 3 0 016 0zM18 8a2 2 0 11-4 0 2 2 0 014 0zM14 15a4 4 0 00-8 0v3h8v-3z"/>
         </svg>
-        Pelanggan
+        <span>Pelanggan</span>
     </a>
 
     @if($userRole === 'Owner')
     {{-- ← TAMBAHKAN BLOK INI ← --}}
-    <a href="{{ route('pengguna.index') }}"
+    <a href="{{ route('pengguna.index') }}" data-label="Kelola User"
        class="nav-item {{ request()->routeIs('pengguna.*') ? 'active' : '' }}">
         <svg class="n-ico" viewBox="0 0 20 20" fill="currentColor">
             <path d="M9 6a3 3 0 11-6 0 3 3 0 016 0zM17 6a3 3 0 11-6 0 3 3 0 016 0zM12.93 17c.046-.327.07-.66.07-1a6.97 6.97 0 00-1.5-4.33A5 5 0 0119 16v1h-6.07zM6 11a5 5 0 015 5v1H1v-1a5 5 0 015-5z"/>
         </svg>
-        Kelola User
+        <span>Kelola User</span>
     </a>
 
     {{-- ← AKHIR TAMBAHAN ← --}}
-    <a href="{{ route('pengaturan') }}"
+    <a href="{{ route('pengaturan') }}" data-label="Pengaturan"
        class="nav-item {{ request()->routeIs('pengaturan') ? 'active' : '' }}">
         <svg class="n-ico" viewBox="0 0 20 20" fill="currentColor">
             <path fill-rule="evenodd" d="M11.49 3.17c-.38-1.56-2.6-1.56-2.98 0a1.532 1.532 0 01-2.286.948c-1.372-.836-2.942.734-2.106 2.106.54.886.061 2.042-.947 2.287-1.561.379-1.561 2.6 0 2.978a1.532 1.532 0 01.947 2.287c-.836 1.372.734 2.942 2.106 2.106a1.532 1.532 0 012.287.947c.379 1.561 2.6 1.561 2.978 0a1.533 1.533 0 012.287-.947c1.372.836 2.942-.734 2.106-2.106a1.533 1.533 0 01.947-2.287c1.561-.379 1.561-2.6 0-2.978a1.532 1.532 0 01-.947-2.287c.836-1.372-.734-2.942-2.106-2.106a1.532 1.532 0 01-2.287-.947zM10 13a3 3 0 100-6 3 3 0 000 6z" clip-rule="evenodd"/>
         </svg>
-        Pengaturan
+        <span>Pengaturan</span>
     </a>
     @endif
 
@@ -930,7 +1010,7 @@ body.mob-sidebar-open .sidebar-backdrop {
             <div class="pd-header">
                 <div class="pd-role-badge">{{ $userRole ?? '—' }}</div>
                 <div class="pd-name">{{ $userName }}</div>
-                <div class="pd-username">@{{ session('user')['username'] ?? '' }}</div>
+                <div class="pd-username">{{ session('user')['username'] ?? '' }}</div>
             </div>
             <div class="pd-actions">
                 {{-- Tombol logout di dalam dropdown --}}
@@ -949,7 +1029,7 @@ body.mob-sidebar-open .sidebar-backdrop {
 
         {{-- Tombol profil — trigger dropdown, bukan langsung logout --}}
         <div class="s-user" id="profileTrigger" onclick="toggleProfileDropdown()"
-             role="button" aria-haspopup="true" aria-expanded="false">
+             role="button" aria-haspopup="true" aria-expanded="false" data-label="{{ $userName }}">
             <div class="s-ava">{{ $userInitial }}</div>
             <div style="min-width:0">
                 <div class="s-uname">{{ $userName }}</div>
@@ -973,41 +1053,74 @@ body.mob-sidebar-open .sidebar-backdrop {
 
     <header class="topbar">
 
-        {{-- ── Tombol Toggle Sidebar ── --}}
+        {{-- Toggle Sidebar --}}
         <button class="sidebar-toggle-btn" id="sidebarToggle"
-                onclick="toggleSidebar()"
-                title="Sembunyikan / tampilkan sidebar">
-            <div class="hamburger"></div>
+            onclick="toggleSidebar()"
+            title="Sembunyikan / tampilkan sidebar">
+            {{-- Ikon saat sidebar terbuka --}}
+            <i class="bi bi-layout-sidebar ico-open"></i>
+            {{-- Ikon saat sidebar tertutup --}}
+            <i class="bi bi-layout-sidebar-reverse ico-close"></i>
         </button>
 
-        {{-- Breadcrumb --}}
+        @if(request()->routeIs('transaksi.*'))
+        {{-- ── POS: Logo (reuse elemen sidebar) ── --}}
+        <div style="display:flex;align-items:center;gap:10px">
+            <div class="logo-icon" style="width:30px;height:30px;font-size:14px;border-radius:6px;flex-shrink:0">N</div>
+            <div class="logo-words">
+                <div class="logo-name" style="color:var(--black);font-size:13px">NM Gallery</div>
+                <div class="logo-sub" style="color:var(--gray-400)">Point of Sale</div>
+            </div>
+        </div>
+        {{-- ── POS: Jam ── --}}
+        <div style="display:flex;align-items:center;gap:8px;padding-left:12px;border-left:1px solid var(--gray-200)">
+            <div id="posClock" style="font-family:var(--ff-mono);font-size:15px;font-weight:700;color:var(--black);letter-spacing:.5px">--:--</div>
+            <div id="posDate"  style="font-size:10.5px;color:var(--gray-400)">-</div>
+        </div>
+
+        @else
+        {{-- ── Default: Breadcrumb & Search ── --}}
         <nav class="tb-breadcrumb">
             <span>NM Gallery</span>
             <span class="sep"> / </span>
             <span class="cur">@yield('breadcrumb', 'Laporan')</span>
         </nav>
+        <div class="tb-search">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+            <input type="text" placeholder="Cari di sistem...">
+        </div>
+        @endif
 
-        {{-- Grup tombol kanan --}}
+        {{-- Grup kanan --}}
         <div class="tb-right">
 
+            @if(request()->routeIs('transaksi.*'))
+            {{-- ── POS: Shift badge ── --}}
+            <div style="display:flex;align-items:center;gap:5px;background:rgba(45,166,110,.08);border:1px solid rgba(45,166,110,.25);color:#1a8050;border-radius:20px;padding:4px 11px;font-size:10.5px;font-weight:600">
+                <span style="width:6px;height:6px;border-radius:50%;background:#2da66e;display:inline-block;box-shadow:0 0 5px #2da66e;animation:blink 2s infinite"></span>
+                Shift aktif
+            </div>
+            {{-- ── POS: Pengembalian ── --}}
+            <a href="#" class="btn-outline" id="btnGoKembali"
+              onclick="event.preventDefault();if(window.switchTab)window.switchTab('kembali')"
+              style="color:#1a8050;border-color:rgba(45,166,110,.3);background:rgba(45,166,110,.06)">
+                <i class="bi bi-arrow-return-left"></i> Pengembalian
+                @if($trxAktifCount > 0)
+                <span style="background:{{ $trxTelat > 0 ? '#e03434' : '#2da66e' }};color:#fff;font-size:9px;font-weight:700;padding:1px 6px;border-radius:8px;margin-left:2px">{{ $trxAktifCount }}</span>
+                @endif
+            </a>
+
+            @else
             @if($userRole == 'Karyawan')
             <a href="{{ route('transaksi.create') }}" class="btn-gold">+ Sewa Baru</a>
             @endif
+            @endif
 
-            {{--
-                Tombol Panduan "?"
-                Ganti href di bawah dengan URL panduan Anda:
-                  - Route Laravel  : route('panduan')
-                  - File statis    : '/panduan.pdf'
-                  - Dokumen Google : 'https://docs.google.com/...'
-                Atribut target="_blank" membuka panduan di tab baru
-                agar pengguna tidak meninggalkan aplikasi.
-            --}}
             <a href="/panduan"
-               target="_blank"
-               rel="noopener noreferrer"
-               class="help-btn"
-               title="Buka Buku Panduan">
+              target="_blank"
+              rel="noopener noreferrer"
+              class="help-btn"
+              title="Buka Buku Panduan">
                 ?
             </a>
 
@@ -1040,7 +1153,6 @@ body.mob-sidebar-open .sidebar-backdrop {
    karena tidak me-reload <body>).
 */
 (function initSidebarToggle() {
-    // Pulihkan state terakhir saat halaman pertama kali dimuat
     if (localStorage.getItem('sidebar-collapsed') === '1') {
         document.body.classList.add('sidebar-collapsed');
     }
@@ -1054,10 +1166,8 @@ function closeMobileSidebar() {
 
 function toggleSidebar() {
     if (isMobile()) {
-        // On mobile: slide-in/out overlay — don't touch localStorage
         document.body.classList.toggle('mob-sidebar-open');
     } else {
-        // On desktop: classic collapse (width → 0) — persist preference
         const isCollapsed = document.body.classList.toggle('sidebar-collapsed');
         localStorage.setItem('sidebar-collapsed', isCollapsed ? '1' : '0');
     }
@@ -1217,11 +1327,13 @@ if (!window.__spaReady) {
 
             contentEl.innerHTML = newContent.innerHTML;
 
-            document.title = doc.title;
-            const nc = doc.querySelector('.tb-breadcrumb .cur');
-            const oc = document.querySelector('.tb-breadcrumb .cur');
-            if (nc && oc) oc.textContent = nc.textContent;
+            const newTopbar = doc.querySelector('.topbar');
+            const oldTopbar = document.querySelector('.topbar');
+            if (newTopbar && oldTopbar) {
+                oldTopbar.innerHTML = newTopbar.innerHTML;
+            }
 
+            document.title = doc.title;
             syncNav(url);
             if (push) history.pushState({ spa: url }, doc.title, url);
 

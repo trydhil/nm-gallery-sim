@@ -788,16 +788,8 @@
 
 </div>{{-- end .inv-page --}}
 
-{{-- Toast notifikasi singkat (muncul pojok kanan atas) --}}
-<div id="invToast" style="
-    display:none;position:fixed;top:20px;right:24px;z-index:2000;
-    background:var(--black);color:var(--gold-lt);
-    border:1px solid var(--gold-rim);border-radius:10px;
-    padding:12px 18px;font-size:12.5px;font-weight:600;
-    box-shadow:0 8px 24px rgba(0,0,0,.25);
-    transition:opacity .3s ease;max-width:280px;
-    display:flex;align-items:center;gap:8px">
-</div>
+{{-- Element Toast --}}
+<div id="invToast" style="display: none; position: fixed; bottom: 20px; right: 20px; background: var(--black); color: #fff; padding: 12px 24px; border-radius: 8px; font-size: 13px; z-index: 9999; opacity: 0; transition: opacity 0.3s;"></div>
 
 {{-- ═══════════════════════════════════════════
      JAVASCRIPT

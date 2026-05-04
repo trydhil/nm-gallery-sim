@@ -25,7 +25,12 @@ class TransaksiController extends Controller
     {
         // Barang yang tersedia untuk disewa (untuk katalog POS)
         $barangs    = Barang::where('status_barang', 'Tersedia')->get();
-        $pelanggans = Pelanggan::all();
+        $pelanggans = Pelanggan::all()->map(fn($p) => [
+            'id'    => $p->id_pelanggan,
+            'nama'  => $p->nama_pelanggan,
+            'telp'  => $p->no_telp,
+            'alamat'=> $p->alamat ?? '',
+        ])->values();
  
         // Transaksi yang sedang berjalan (untuk tab Pengembalian)
         $transaksiAktif = \App\Models\Transaksi::with(['pelanggan', 'detailTransaksis.barang'])
@@ -59,6 +64,155 @@ class TransaksiController extends Controller
             'transaksiAktif',
             'dendaPerHari'
         ));
+    }
+
+    public function storePos(Request $request)
+    {
+        $request->validate([
+            'id_pelanggan'    => 'required|exists:pelanggan,id_pelanggan',
+            'id_barang'       => 'required|exists:barang,id_barang',
+            'tgl_sewa'        => 'required|date',
+            'tgl_jatuh_tempo' => 'required|date|after:tgl_sewa',
+            'metode_bayar'    => 'required|in:Lunas,DP',
+            'items'           => 'required|string',
+        ]);
+ 
+        DB::beginTransaction();
+        try {
+            $pelanggan = Pelanggan::findOrFail($request->id_pelanggan);
+            $barang    = Barang::findOrFail($request->id_barang);
+ 
+            $tglSewa    = Carbon::parse($request->tgl_sewa)->startOfDay();
+            $tglKembali = Carbon::parse($request->tgl_jatuh_tempo)->startOfDay();
+            $durasi     = max(1, $tglSewa->diffInDays($tglKembali));
+ 
+            $items = json_decode($request->items, true) ?? [];
+ 
+            // Hitung total biaya dari items
+            $totalBiaya = 0;
+            if (!empty($items)) {
+                foreach ($items as $item) {
+                    $totalBiaya += ($item['harga'] ?? $barang->harga_sewa) * ($item['jumlah'] ?? 1) * $durasi;
+                }
+            } else {
+                $totalBiaya = $barang->harga_sewa * $durasi;
+            }
+ 
+            // Terapkan diskon & ongkir jika ada
+            $diskon     = (int) ($request->diskon ?? 0);
+            $ongkir     = (int) ($request->ongkir ?? 0);
+            $totalBiaya = max(0, $totalBiaya - $diskon + $ongkir);
+ 
+            // Hitung DP / Lunas
+            $metodeBayar = $request->metode_bayar;
+            $jumlahDp    = 0;
+            $sisaTagihan = 0;
+ 
+            if ($metodeBayar === 'DP') {
+                $jumlahDp    = (int) ($request->jumlah_dp ?? round($totalBiaya * 0.5));
+                $sisaTagihan = $totalBiaya - $jumlahDp;
+            } else {
+                $jumlahDp    = $totalBiaya;
+                $sisaTagihan = 0;
+            }
+ 
+            // Buat transaksi utama
+            $transaksi = Transaksi::create([
+                'id_pelanggan'     => $pelanggan->id_pelanggan,
+                'id_user'          => session('user')['id_user'],
+                'tgl_sewa'         => $request->tgl_sewa,
+                'tgl_jatuh_tempo'  => $request->tgl_jatuh_tempo,
+                'total_biaya'      => $totalBiaya,
+                'total_denda'      => 0,
+                'status_transaksi' => 'Diproses',
+                'metode_bayar'     => $metodeBayar,
+                'jumlah_dp'        => $jumlahDp,
+                'sisa_tagihan'     => $sisaTagihan,
+            ]);
+ 
+            // Simpan detail & kurangi stok per ukuran
+            if (!empty($items)) {
+                foreach ($items as $item) {
+                    $ukuran    = $item['size']   ?? null;
+                    $kuantitas = $item['jumlah'] ?? 1;
+                    $harga     = $item['harga']  ?? $barang->harga_sewa;
+ 
+                    DetailTransaksi::create([
+                        'id_transaksi' => $transaksi->id_transaksi,
+                        'id_barang'    => $barang->id_barang,
+                        'ukuran'       => $ukuran,
+                        'kuantitas'    => $kuantitas,
+                        'sub_total'    => $harga * $kuantitas * $durasi,
+                    ]);
+ 
+                    if ($ukuran) {
+                        $berhasil = $barang->kurangiStok($ukuran, $kuantitas);
+                        if (!$berhasil) {
+                            DB::rollBack();
+                            return response()->json([
+                                'success' => false,
+                                'message' => "Stok ukuran {$ukuran} tidak mencukupi. " .
+                                             "Tersedia: " . ($barang->getStokPerUkuranAttribute()[$ukuran] ?? 0) .
+                                             " pcs, diminta: {$kuantitas} pcs.",
+                            ], 422);
+                        }
+                    }
+                }
+            } else {
+                // Fallback tanpa ukuran
+                DetailTransaksi::create([
+                    'id_transaksi' => $transaksi->id_transaksi,
+                    'id_barang'    => $barang->id_barang,
+                    'ukuran'       => null,
+                    'kuantitas'    => 1,
+                    'sub_total'    => $totalBiaya,
+                ]);
+                $barang->update(['status_barang' => 'Disewa']);
+            }
+ 
+            DB::commit();
+ 
+            // ── Susun payload resi untuk response JSON ──
+            $invoiceNo = 'TRX-' . strtoupper(substr(md5($transaksi->id_transaksi . time()), 0, 8));
+ 
+            // Format items untuk resi
+            $resiItems = collect($items)->map(fn($it) => [
+                'nama' => $barang->nama_barang,
+                'size' => $it['size']   ?? '-',
+                'qty'  => $it['jumlah'] ?? 1,
+            ])->values()->toArray();
+ 
+            if (empty($resiItems)) {
+                $resiItems = [['nama' => $barang->nama_barang, 'size' => '-', 'qty' => 1]];
+            }
+ 
+            return response()->json([
+                'success'     => true,
+                'invoice_no'  => $invoiceNo,
+                'tgl_created' => now()->locale('id')->isoFormat('DD MMM YYYY'),
+                'tgl_sewa'    => Carbon::parse($request->tgl_sewa)->format('d/m/Y'),
+                'tgl_jatuh'   => Carbon::parse($request->tgl_jatuh_tempo)->format('d/m/Y'),
+                'printed_at'  => now()->format('j/n/Y, H.i.s'),
+                'pelanggan'   => [
+                    'nama'   => $pelanggan->nama_pelanggan,
+                    'telp'   => $pelanggan->no_telp,
+                    'alamat' => $pelanggan->alamat ?? 'Makassar',
+                ],
+                'items'        => $resiItems,
+                'total_biaya'  => $totalBiaya,
+                'jumlah_dp'    => $jumlahDp,
+                'sisa_tagihan' => $sisaTagihan,
+                'metode_bayar' => $metodeBayar,
+                'transaksi_id' => $transaksi->id_transaksi,
+            ]);
+ 
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return response()->json([
+                'success' => false,
+                'message' => 'Gagal memproses transaksi: ' . $e->getMessage(),
+            ], 500);
+        }
     }
 
     // =====================================================================
@@ -304,6 +458,42 @@ class TransaksiController extends Controller
             }
 
             $this->sendWhatsAppNotification($transaksi->fresh()->load('pelanggan'), $totalDenda, $sisaTagihan);
+
+            if ($request->has('wantsJson') || $request->wantsJson() || $request->ajax()) {
+                $resiItems = $transaksi->detailTransaksis->map(function ($dt) {
+                    return [
+                        'nama' => $dt->barang->nama_barang ?? '-',
+                        'size' => $dt->ukuran ?? '-',
+                        'qty'  => $dt->kuantitas ?? 1,
+                    ];
+                })->toArray();
+
+                $invoiceNo = 'TRX-' . strtoupper(substr(md5($transaksi->id_transaksi . time()), 0, 8));
+
+                return response()->json([
+                    'success'     => true,
+                    'invoice_no'  => $invoiceNo,
+                    'tgl_created' => $transaksi->created_at->locale('id')->isoFormat('DD MMM YYYY'),
+                    'tgl_sewa'    => Carbon::parse($transaksi->tgl_sewa)->format('d/m/Y'),
+                    'tgl_jatuh'   => Carbon::parse($transaksi->tgl_jatuh_tempo)->format('d/m/Y'),
+                    'printed_at'  => now()->format('j/n/Y, H.i.s'),
+                    'pelanggan'   => [
+                        'nama'   => $transaksi->pelanggan->nama_pelanggan ?? '-',
+                        'telp'   => $transaksi->pelanggan->no_telp ?? '-',
+                        'alamat' => $transaksi->pelanggan->alamat ?? 'Makassar',
+                    ],
+                    'items'        => $resiItems,
+                    'total_biaya'  => $transaksi->total_biaya,
+                    'jumlah_dp'    => $transaksi->jumlah_dp,
+                    'sisa_tagihan' => 0, // sisa_tagihan sekarang bernilai 0 karena telah dilunaskan
+                    'metode_bayar' => $transaksi->metode_bayar,
+                    'transaksi_id' => $transaksi->id_transaksi,
+                    
+                    'is_pengembalian'     => true,
+                    'total_denda'         => $totalDenda,
+                    'total_bayar_kembali' => $totalBayarKembali,
+                ]);
+            }
 
             return redirect()
                 ->route('transaksi.show', $transaksi->id_transaksi)
