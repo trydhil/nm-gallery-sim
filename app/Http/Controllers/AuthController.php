@@ -28,6 +28,7 @@ class AuthController extends Controller
                 'nama_lengkap' => $user->nama_lengkap,
                 'username'     => $user->username,
                 'role'         => $user->role,
+                'foto'         => $user->foto,
             ]]);
 
             // Karyawan → langsung ke POS Transaksi

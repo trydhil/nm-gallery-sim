@@ -9,1091 +9,1201 @@
     $isOwner = session('user')['role'] === 'Owner';
 @endphp
 
-{{-- ═══════════════════════════════════════════════════════
-     CSS LOKAL — Mengikuti pola visual yang sama dengan
-     halaman Transaksi agar bahasa desain konsisten.
-     Kita hanya mendeklarasikan class yang unik untuk
-     halaman ini; class umum (btn-gold, badge, dll.)
-     sudah ada di layouts/app.blade.php.
-═══════════════════════════════════════════════════════ --}}
 <style>
-/* ── Wrapper halaman: memenuhi sisa tinggi area content ── */
+/* ══════════════════════════════════════════════
+   PAGE WRAPPER
+══════════════════════════════════════════════ */
 .inv-page {
     display: flex;
     flex-direction: column;
-    /* Tinggi penuh dikurangi padding content (24px atas + 24px bawah) */
-    height: calc(100vh - 52px - 48px);
-    margin: -24px;          /* hapus padding default .content */
+    gap: 0;
+    margin: -24px;
+    height: calc(100vh - 52px);
     overflow: hidden;
 }
 
-/* ── Tab bar di bagian atas ── */
-.inv-tabbar {
+/* ══════════════════════════════════════════════
+   TOOLBAR — Header bar
+══════════════════════════════════════════════ */
+.inv-toolbar {
     background: #fff;
     border-bottom: 1px solid var(--gray-200);
+    padding: 10px 18px;
     display: flex;
     align-items: center;
-    padding: 0 20px;
-    gap: 4px;
+    gap: 10px;
     flex-shrink: 0;
-    height: 44px;
 }
-.inv-tab {
-    padding: 0 18px;
-    height: 100%;
+
+/* Search */
+.inv-search-wrap {
     display: flex;
     align-items: center;
     gap: 7px;
-    font-size: 12.5px;
-    font-weight: 500;
-    color: var(--gray-500);
-    cursor: pointer;
-    border-bottom: 2px solid transparent;
-    transition: color .15s, border-color .15s;
-    white-space: nowrap;
-}
-.inv-tab:hover  { color: var(--gold-dk); }
-.inv-tab.active { color: var(--black); font-weight: 600; border-bottom-color: var(--gold); }
-.inv-tab-badge  {
-    background: var(--gold);
-    color: var(--black);
-    font-size: 9.5px;
-    font-weight: 700;
-    min-width: 18px;
-    height: 18px;
+    background: var(--gray-50);
+    border: 1.5px solid var(--gray-200);
     border-radius: 9px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 0 4px;
-}
-
-/* ── Panel tab content ── */
-.inv-tab-content         { display: none; flex: 1; overflow: hidden; }
-.inv-tab-content.active  { display: flex; }
-
-/* ══════════════════════════════════════════════
-   TAB 1 — KELOLA STOK (split panel)
-══════════════════════════════════════════════ */
-.inv-split { display: flex; flex: 1; overflow: hidden; }
-
-/* ── Sisi kiri: Katalog barang ── */
-.inv-katalog {
+    padding: 0 11px;
+    transition: .18s;
     flex: 1;
-    display: flex;
-    flex-direction: column;
-    overflow: hidden;
-    background: #f8f7f4;
-    border-right: 1px solid var(--gray-200);
+    max-width: 320px;
 }
-.inv-kat-top {
+.inv-search-wrap:focus-within {
+    border-color: var(--gold);
     background: #fff;
-    border-bottom: 1px solid var(--gray-200);
-    padding: 11px 14px;
-    display: flex;
-    flex-direction: column;
-    gap: 9px;
-    flex-shrink: 0;
+    box-shadow: 0 0 0 3px var(--gold-xs);
 }
-.inv-search {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    background: #f8f7f4;
-    border: 1.5px solid rgba(0,0,0,.12);
-    border-radius: 10px;
-    padding: 0 12px;
-    transition: .2s;
-}
-.inv-search:focus-within { border-color: var(--gold); background: #fff; }
-.inv-search input {
-    flex: 1;
+.inv-search-wrap input {
     border: none;
     background: transparent;
     outline: none;
     padding: 8px 0;
-    font-size: 13px;
+    font-size: 12.5px;
     font-family: var(--ff);
     color: var(--black);
+    flex: 1;
 }
-.inv-search input::placeholder { color: #bbb; }
+.inv-search-wrap input::placeholder { color: #bbb; }
 
-/* Filter chips horizontal scroll */
-.inv-chips { display: flex; gap: 6px; overflow-x: auto; }
-.inv-chips::-webkit-scrollbar { height: 0; }
-.inv-chip {
-    padding: 4px 13px;
+/* Stat chips in toolbar */
+.inv-stat-chips { display: flex; gap: 5px; }
+.inv-stat-chip {
+    padding: 4px 12px;
     border-radius: 20px;
-    font-size: 11.5px;
-    font-weight: 500;
-    border: 1px solid rgba(0,0,0,.14);
+    font-size: 11px;
+    font-weight: 600;
+    border: 1.5px solid var(--gray-200);
     background: #fff;
-    color: #6b6b6b;
+    color: var(--gray-500);
     cursor: pointer;
-    white-space: nowrap;
     transition: .12s;
-    flex-shrink: 0;
+    white-space: nowrap;
+    display: flex;
+    align-items: center;
+    gap: 5px;
 }
-.inv-chip:hover:not(.active) { border-color: var(--gold-dk); color: var(--gold-dk); }
-.inv-chip.active { background: var(--black); border-color: var(--black); color: var(--gold-lt); }
+.inv-stat-chip:hover { border-color: var(--gold-rim); color: var(--gold-dk); }
+.inv-stat-chip.active { background: var(--black); border-color: var(--black); color: var(--gold-lt); }
+.inv-stat-chip .chip-count {
+    background: rgba(255,255,255,.18);
+    border-radius: 10px;
+    padding: 0 5px;
+    font-size: 9.5px;
+    font-weight: 700;
+}
+.inv-stat-chip.active .chip-count { background: rgba(255,255,255,.2); color: #fff; }
 
-/* Grid kartu barang */
-.inv-grid {
+.inv-toolbar-right { margin-left: auto; display: flex; gap: 8px; align-items: center; }
+
+/* ══════════════════════════════════════════════
+   PRODUCT GRID AREA
+══════════════════════════════════════════════ */
+.inv-body {
     flex: 1;
     overflow-y: auto;
-    padding: 12px 14px;
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(152px, 1fr));
-    gap: 10px;
-    align-content: start;
+    background: #f5f5f3;
+    padding: 16px 18px 24px;
 }
-.inv-grid::-webkit-scrollbar { width: 4px; }
-.inv-grid::-webkit-scrollbar-thumb { background: rgba(0,0,0,.15); border-radius: 2px; }
+.inv-body::-webkit-scrollbar { width: 5px; }
+.inv-body::-webkit-scrollbar-thumb { background: var(--gray-300); border-radius: 3px; }
 
-/* Kartu individual barang */
-.inv-card {
+/* 6-column grid */
+.inv-grid {
+    display: grid;
+    grid-template-columns: repeat(6, 1fr);
+    gap: 12px;
+}
+
+/* ══════════════════════════════════════════════
+   PRODUCT CARD
+══════════════════════════════════════════════ */
+.pcard {
     background: #fff;
-    border: 1.5px solid rgba(0,0,0,.09);
+    border: 1.5px solid rgba(0,0,0,.08);
     border-radius: 10px;
     overflow: hidden;
-    cursor: pointer;
-    transition: border-color .18s, box-shadow .18s, transform .18s;
     position: relative;
+    cursor: default;
+    transition: border-color .18s, box-shadow .18s, transform .18s;
 }
-.inv-card:hover {
-    border-color: var(--gold);
-    box-shadow: 0 3px 14px rgba(201,168,76,.15);
+.pcard:hover {
+    border-color: var(--gold-rim);
+    box-shadow: 0 4px 18px rgba(0,0,0,.09);
     transform: translateY(-2px);
 }
-/* Kartu yang sedang dipilih mendapat highlight penuh */
-.inv-card.selected {
-    border-color: var(--gold);
-    box-shadow: 0 0 0 3px rgba(201,168,76,.18), 0 4px 16px rgba(201,168,76,.15);
-}
-.inv-card.selected::after {
-    content: '✓';
-    position: absolute;
-    top: 7px;
-    right: 7px;
-    width: 20px;
-    height: 20px;
-    background: var(--gold);
-    color: var(--black);
-    border-radius: 50%;
-    font-size: 11px;
-    font-weight: 700;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    z-index: 2;
-}
-/* Foto/placeholder item */
-.inv-card-img {
-    height: 90px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 34px;
-    background: linear-gradient(135deg, #faf5e8, #f5edd6);
+
+/* Image zone */
+.pcard-img {
     position: relative;
+    aspect-ratio: 3/4;
+    background: linear-gradient(135deg, #faf5e8, #f0e8d0);
     overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
-.inv-card-img img {
+.pcard-img img {
+    position: absolute;
+    inset: 0;
     width: 100%;
     height: 100%;
     object-fit: cover;
-    position: absolute;
-    inset: 0;
+    transition: transform .3s ease;
 }
-/* Badge status di pojok kiri atas kartu */
-.inv-status-badge {
-    position: absolute;
-    top: 6px;
-    left: 6px;
-    font-size: 8.5px;
-    font-weight: 700;
-    padding: 2px 7px;
-    border-radius: 9px;
-    letter-spacing: .3px;
-    z-index: 1;
-}
-.inv-status-badge.tersedia { background: rgba(26,128,80,.12); color: #1a8050; border: 1px solid rgba(26,128,80,.25); }
-.inv-status-badge.disewa   { background: rgba(201,168,76,.15); color: var(--gold-dk); border: 1px solid var(--gold-md); }
-.inv-status-badge.laundry  { background: rgba(59,130,246,.1); color: #2563eb; border: 1px solid rgba(59,130,246,.25); }
-.inv-status-badge.rusak    { background: rgba(220,52,52,.1); color: #c0392b; border: 1px solid rgba(220,52,52,.25); }
-
-.inv-card-body { padding: 9px 10px; }
-.inv-card-nama  { font-size: 11.5px; font-weight: 600; color: var(--black); line-height: 1.3; margin-bottom: 3px; }
-.inv-card-meta  { font-size: 10px; color: #aaa; margin-bottom: 5px; }
-.inv-card-stok  {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-}
-.inv-stok-num {
-    font-family: var(--ff-mono);
-    font-size: 13px;
-    font-weight: 700;
+.pcard:hover .pcard-img img { transform: scale(1.04); }
+.pcard-img-placeholder {
+    font-size: 30px;
+    opacity: .35;
     color: var(--gold-dk);
 }
-.inv-stok-zero { color: #c0392b; }  /* merah bila stok = 0 */
 
-/* ── Sisi kanan: Panel manajemen stok ── */
-.inv-panel {
-    width: 290px;
-    background: #fff;
-    display: flex;
-    flex-direction: column;
-    flex-shrink: 0;
+/* Stock badge — top right */
+.pcard-stok-badge {
+    position: absolute;
+    top: 7px;
+    right: 7px;
+    background: rgba(10,10,10,.72);
+    backdrop-filter: blur(4px);
+    color: #fff;
+    font-size: 9px;
+    font-weight: 700;
+    padding: 2.5px 7px;
+    border-radius: 8px;
+    letter-spacing: .3px;
+    z-index: 2;
 }
+.pcard-stok-badge.stok-0 { background: rgba(192,57,43,.78); }
 
-/* State kosong: tidak ada barang dipilih */
-.inv-panel-empty {
-    flex: 1;
+/* Hover action buttons — appear on hover */
+.pcard-actions {
+    position: absolute;
+    top: 7px;
+    left: 7px;
     display: flex;
-    flex-direction: column;
+    gap: 5px;
+    opacity: 0;
+    transform: translateY(-4px);
+    transition: opacity .18s, transform .18s;
+    z-index: 3;
+}
+.pcard:hover .pcard-actions {
+    opacity: 1;
+    transform: translateY(0);
+}
+.pcard-action-btn {
+    width: 28px;
+    height: 28px;
+    border-radius: 7px;
+    border: none;
+    display: flex;
     align-items: center;
     justify-content: center;
-    gap: 10px;
-    color: #bbb;
-    padding: 24px;
-    text-align: center;
+    font-size: 12px;
+    cursor: pointer;
+    transition: .12s;
+    backdrop-filter: blur(6px);
 }
-.inv-panel-empty-ico { font-size: 36px; opacity: .3; }
-.inv-panel-empty-txt { font-size: 11.5px; line-height: 1.6; }
-
-/* Header panel saat barang dipilih */
-.inv-panel-head {
-    background: var(--black);
-    padding: 14px 16px;
-    flex-shrink: 0;
+.pcard-action-btn.edit-btn {
+    background: rgba(255,255,255,.92);
+    color: var(--gold-dk);
+    box-shadow: 0 1px 6px rgba(0,0,0,.18);
 }
-.inv-panel-nama { font-size: 14px; font-weight: 600; color: var(--gold-lt); margin-bottom: 2px; line-height: 1.3; }
-.inv-panel-sub  { font-size: 11px; color: rgba(255,255,255,.35); }
+.pcard-action-btn.edit-btn:hover { background: var(--gold); color: var(--black); }
+.pcard-action-btn.del-btn {
+    background: rgba(255,255,255,.92);
+    color: #c0392b;
+    box-shadow: 0 1px 6px rgba(0,0,0,.18);
+}
+.pcard-action-btn.del-btn:hover { background: #c0392b; color: #fff; }
 
-/* Body panel: scrollable */
-.inv-panel-body { flex: 1; overflow-y: auto; padding: 16px; }
-.inv-panel-body::-webkit-scrollbar { width: 3px; }
-.inv-panel-body::-webkit-scrollbar-thumb { background: var(--gray-300); }
-
-/* Judul seksi dalam panel */
-.inv-sec-title {
-    font-size: 10px;
+/* Card body */
+.pcard-body { padding: 9px 11px 11px; }
+.pcard-ukuran {
+    display: inline-block;
+    font-size: 9px;
     font-weight: 700;
-    color: #999;
+    color: var(--gold-dk);
+    background: var(--gold-xs);
+    border: 1px solid var(--gold-md);
+    border-radius: 4px;
+    padding: 1.5px 6px;
+    margin-bottom: 4px;
+    letter-spacing: .4px;
     text-transform: uppercase;
-    letter-spacing: .9px;
-    padding-bottom: 7px;
-    border-bottom: 1px solid var(--gray-100);
-    margin-bottom: 12px;
+}
+.pcard-name {
+    font-size: 11.5px;
+    font-weight: 700;
+    color: var(--black);
+    line-height: 1.35;
+    margin-bottom: 3px;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+.pcard-barcode {
+    font-size: 9px;
+    color: #bbb;
+    font-family: var(--ff-mono);
+    margin-bottom: 6px;
+    letter-spacing: .5px;
+}
+.pcard-price {
+    font-size: 13px;
+    font-weight: 800;
+    color: var(--gold-dk);
+    font-family: var(--ff-mono);
+}
+.pcard-price small {
+    font-size: 9px;
+    font-weight: 400;
+    color: #bbb;
+    font-family: var(--ff);
 }
 
-/* Baris stok per ukuran: label + kontrol +/- */
-.stok-row {
+/* Status indicator stripe at bottom */
+.pcard-status-stripe {
+    height: 2.5px;
+    width: 100%;
+}
+.stripe-tersedia { background: linear-gradient(90deg, #2da66e, #52c896); }
+.stripe-disewa   { background: linear-gradient(90deg, var(--gold-dk), var(--gold)); }
+.stripe-laundry  { background: linear-gradient(90deg, #2563eb, #60a5fa); }
+.stripe-rusak    { background: linear-gradient(90deg, #c0392b, #e74c3c); }
+
+/* ══════════════════════════════════════════════
+   EMPTY STATE
+══════════════════════════════════════════════ */
+.inv-empty {
+    grid-column: 1 / -1;
+    padding: 60px 20px;
+    text-align: center;
+    color: #bbb;
+}
+.inv-empty-ico { font-size: 40px; opacity: .3; margin-bottom: 12px; display: block; }
+
+/* ══════════════════════════════════════════════
+   MODALS
+══════════════════════════════════════════════ */
+.inv-modal-ov {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,.55);
+    backdrop-filter: blur(5px);
+    z-index: 1000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 16px;
+    opacity: 0;
+    visibility: hidden;
+    transition: all .22s ease;
+}
+.inv-modal-ov.show { opacity: 1; visibility: visible; }
+
+/* ── EDIT MODAL — wide with profile on right ── */
+.edit-modal {
+    background: #fff;
+    border-radius: 16px;
+    width: 100%;
+    max-width: 760px;
+    max-height: 90vh;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    transform: scale(.94) translateY(10px);
+    transition: transform .24s cubic-bezier(.34,1.4,.64,1);
+    box-shadow: 0 24px 60px rgba(0,0,0,.22);
+}
+.inv-modal-ov.show .edit-modal { transform: scale(1) translateY(0); }
+
+.edit-modal-head {
+    background: var(--black);
+    padding: 14px 20px;
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 10px 12px;
-    background: #f8f7f4;
-    border-radius: 8px;
-    margin-bottom: 8px;
-    border: 1.5px solid transparent;
-    transition: border-color .15s;
+    flex-shrink: 0;
 }
-.stok-row:focus-within { border-color: var(--gold-rim); background: var(--gold-xs); }
-.stok-size-lbl {
-    font-size: 13px;
-    font-weight: 700;
-    color: var(--black);
-    min-width: 40px;
-}
-/* Kontrol quantity +/- */
-.stok-ctrl { display: flex; align-items: center; gap: 8px; }
-.stok-btn {
-    width: 26px; height: 26px;
+.edit-modal-title { font-size: 14px; font-weight: 600; color: var(--gold-lt); }
+.edit-modal-sub   { font-size: 11px; color: rgba(255,255,255,.3); margin-top: 2px; }
+.modal-x {
+    width: 28px; height: 28px;
     border-radius: 7px;
-    border: 1.5px solid rgba(0,0,0,.14);
-    background: #fff;
+    border: 1px solid rgba(255,255,255,.12);
+    background: transparent;
+    color: rgba(255,255,255,.4);
     cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 14px;
+    transition: .12s;
+}
+.modal-x:hover { background: rgba(255,255,255,.08); color: rgba(255,255,255,.8); }
+
+/* Two-column body */
+.edit-modal-body {
+    display: grid;
+    grid-template-columns: 1fr 230px;
+    flex: 1;
+    overflow: hidden;
+}
+
+/* Left: form */
+.edit-form-col {
+    padding: 18px 20px;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 13px;
+}
+.edit-form-col::-webkit-scrollbar { width: 3px; }
+.edit-form-col::-webkit-scrollbar-thumb { background: var(--gray-200); }
+
+/* Right: profile card */
+.edit-profile-col {
+    border-left: 1px solid var(--gray-100);
+    background: var(--gray-50);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 20px 16px;
+    gap: 12px;
+    overflow-y: auto;
+}
+.edit-profile-img {
+    width: 130px;
+    height: 160px;
+    border-radius: 10px;
+    background: linear-gradient(135deg, #faf5e8, #f0e8d0);
+    overflow: hidden;
+    position: relative;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 16px;
+    border: 2px solid var(--gold-md);
+    flex-shrink: 0;
+}
+.edit-profile-img img {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+.edit-profile-name {
+    font-size: 12.5px;
+    font-weight: 700;
     color: var(--black);
-    transition: .12s;
-    line-height: 1;
+    text-align: center;
+    line-height: 1.35;
+}
+.edit-profile-price {
+    font-size: 15px;
+    font-weight: 800;
+    color: var(--gold-dk);
+    font-family: var(--ff-mono);
+    text-align: center;
+}
+.edit-profile-price small {
+    font-size: 10px;
+    font-weight: 400;
+    color: #aaa;
     font-family: var(--ff);
 }
-.stok-btn:hover { border-color: var(--gold); color: var(--gold-dk); background: var(--gold-xs); }
-.stok-btn.minus:hover { border-color: #e03434; color: #e03434; background: rgba(220,52,52,.06); }
-/* Input jumlah stok — bisa diketik langsung atau diubah via +/- */
-.stok-input {
-    width: 48px;
-    text-align: center;
-    border: 1.5px solid rgba(0,0,0,.12);
+.edit-profile-status {
+    display: inline-block;
+    padding: 3px 12px;
+    border-radius: 20px;
+    font-size: 10.5px;
+    font-weight: 700;
+}
+.ep-tersedia { background: rgba(26,128,80,.1); color: #1a8050; border: 1px solid rgba(26,128,80,.2); }
+.ep-disewa   { background: var(--gold-xs); color: var(--gold-dk); border: 1px solid var(--gold-md); }
+.ep-laundry  { background: rgba(37,99,235,.08); color: #2563eb; border: 1px solid rgba(37,99,235,.2); }
+.ep-rusak    { background: rgba(192,57,43,.08); color: #c0392b; border: 1px solid rgba(192,57,43,.2); }
+
+.edit-profile-divider {
+    width: 100%;
+    border: none;
+    border-top: 1px solid var(--gray-200);
+    margin: 4px 0;
+}
+
+/* Stok per ukuran (profile side) */
+.ep-stok-grid { width: 100%; display: flex; flex-direction: column; gap: 5px; }
+.ep-stok-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 5px 9px;
+    background: #fff;
     border-radius: 6px;
-    padding: 5px 4px;
+    border: 1px solid var(--gray-200);
+}
+.ep-stok-label { font-size: 11px; font-weight: 700; color: var(--black); }
+.ep-stok-val   { font-size: 11px; font-weight: 700; color: var(--gold-dk); font-family: var(--ff-mono); }
+
+/* Form fields */
+.f-group { display: flex; flex-direction: column; gap: 4px; }
+.f-label {
+    font-size: 10.5px;
+    font-weight: 700;
+    color: var(--gray-600);
+    text-transform: uppercase;
+    letter-spacing: .5px;
+}
+.f-inp, .f-sel {
+    width: 100%;
+    padding: 8px 11px;
+    border: 1.5px solid var(--gray-200);
+    border-radius: 8px;
+    font-size: 13px;
+    font-family: var(--ff);
+    color: var(--black);
+    background: #fff;
+    outline: none;
+    transition: .16s;
+}
+.f-inp:focus, .f-sel:focus { border-color: var(--gold); box-shadow: 0 0 0 3px var(--gold-xs); }
+.f-grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+
+/* Stok per ukuran in form */
+.stok-edit-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
+.stok-edit-item {
+    background: var(--gray-50);
+    border: 1.5px solid var(--gray-200);
+    border-radius: 8px;
+    padding: 10px 8px;
+    text-align: center;
+    transition: .15s;
+}
+.stok-edit-item:focus-within { border-color: var(--gold); background: var(--gold-xs); }
+.stok-edit-size { font-size: 11px; font-weight: 700; color: var(--gray-600); margin-bottom: 7px; }
+.stok-edit-input {
+    width: 100%;
+    text-align: center;
+    border: 1.5px solid var(--gray-200);
+    border-radius: 6px;
+    padding: 5px 2px;
     font-size: 14px;
     font-family: var(--ff-mono);
     font-weight: 700;
     color: var(--gold-dk);
     background: #fff;
     outline: none;
-    transition: border-color .15s;
-    -moz-appearance: textfield; /* sembunyikan spinner di Firefox */
+    -moz-appearance: textfield;
 }
-.stok-input::-webkit-outer-spin-button,
-.stok-input::-webkit-inner-spin-button { -webkit-appearance: none; }
-.stok-input:focus { border-color: var(--gold); }
+.stok-edit-input::-webkit-outer-spin-button,
+.stok-edit-input::-webkit-inner-spin-button { -webkit-appearance: none; }
+.stok-edit-input:focus { border-color: var(--gold); }
 
-/* Box ringkasan total */
-.stok-summary {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 10px 12px;
-    background: var(--gold-xs);
-    border-radius: 8px;
-    border: 1px solid var(--gold-md);
-    margin: 12px 0 16px;
-}
-.stok-summary-lbl { font-size: 12.5px; font-weight: 600; }
-.stok-summary-val { font-family: var(--ff-mono); font-size: 16px; font-weight: 700; color: var(--gold-dk); }
-
-/* Dropdown status barang */
-.status-select {
-    width: 100%;
-    padding: 9px 12px;
-    border: 1.5px solid var(--gray-200);
-    border-radius: 8px;
-    font-size: 13px;
-    font-family: var(--ff);
-    color: var(--black);
-    background: #fff;
-    outline: none;
-    cursor: pointer;
-    transition: border-color .15s;
-    margin-bottom: 12px;
-}
-.status-select:focus { border-color: var(--gold); }
-
-/* Footer panel: tombol aksi utama */
-.inv-panel-foot {
-    padding: 13px 16px;
+/* Modal footer */
+.edit-modal-foot {
+    padding: 12px 20px;
     border-top: 1px solid var(--gray-100);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
     flex-shrink: 0;
+    background: var(--gray-50);
 }
-.btn-save-stok {
+.edit-modal-foot-left { display: flex; gap: 8px; }
+
+/* ── ADD MODAL ── */
+.add-modal {
+    background: #fff;
+    border-radius: 16px;
     width: 100%;
-    padding: 11px;
-    background: var(--black);
-    border: 1.5px solid rgba(201,168,76,.4);
-    border-radius: 10px;
-    color: var(--gold-lt);
-    font-size: 13px;
-    font-weight: 600;
-    cursor: pointer;
-    transition: .18s;
-    font-family: var(--ff);
-    margin-bottom: 8px;
-}
-.btn-save-stok:hover { background: #1a1a1a; box-shadow: 0 4px 16px rgba(201,168,76,.2); }
-.btn-save-stok:disabled { opacity: .4; cursor: not-allowed; }
-.btn-delete-barang {
-    width: 100%;
-    padding: 8px;
-    background: transparent;
-    border: 1px solid rgba(220,52,52,.3);
-    border-radius: 10px;
-    color: #c0392b;
-    font-size: 11.5px;
-    cursor: pointer;
-    transition: .12s;
-    font-family: var(--ff);
-}
-.btn-delete-barang:hover { background: rgba(220,52,52,.06); border-color: #c0392b; }
-
-/* ══════════════════════════════════════════════
-   TAB 2 — TAMBAH BARANG (Owner only)
-══════════════════════════════════════════════ */
-.tambah-wrap {
-    flex: 1;
-    overflow-y: auto;
-    padding: 24px;
-    background: #f8f7f4;
-}
-.tambah-wrap::-webkit-scrollbar { width: 5px; }
-.tambah-wrap::-webkit-scrollbar-thumb { background: var(--gray-300); border-radius: 3px; }
-
-/* Form tambah barang: dua kolom di layar lebar */
-.tambah-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 20px;
-    max-width: 800px;
-}
-.tambah-grid .full-col { grid-column: 1 / -1; }
-
-/* Field individual dalam form */
-.f-group {
+    max-width: 540px;
+    max-height: 88vh;
+    overflow: hidden;
     display: flex;
     flex-direction: column;
-    gap: 5px;
+    transform: scale(.94) translateY(10px);
+    transition: transform .24s cubic-bezier(.34,1.4,.64,1);
+    box-shadow: 0 24px 60px rgba(0,0,0,.22);
 }
-.f-group label {
-    font-size: 11px;
-    font-weight: 700;
-    color: var(--gray-600);
-    text-transform: uppercase;
-    letter-spacing: .5px;
-}
-.f-inp {
-    padding: 10px 13px;
-    border: 1.5px solid var(--gray-200);
-    border-radius: 8px;
-    font-size: 13px;
-    font-family: var(--ff);
-    color: var(--black);
-    background: #fff;
-    outline: none;
-    transition: border-color .18s, box-shadow .18s;
-}
-.f-inp:focus { border-color: var(--gold); box-shadow: 0 0 0 3px var(--gold-xs); }
-
-/* Grid ukuran+stok dalam form tambah */
-.ukuran-stok-grid {
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 10px;
-}
-.ukuran-stok-item {
-    background: #fff;
-    border: 1.5px solid var(--gray-200);
-    border-radius: 8px;
-    padding: 12px 10px;
-    text-align: center;
-    transition: border-color .15s;
-}
-.ukuran-stok-item:focus-within { border-color: var(--gold); background: var(--gold-xs); }
-.ukuran-stok-label {
-    font-size: 12px;
-    font-weight: 700;
-    color: var(--gray-600);
-    margin-bottom: 8px;
+.inv-modal-ov.show .add-modal { transform: scale(1) translateY(0); }
+.add-modal-body {
+    padding: 18px 20px;
+    overflow-y: auto;
     display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 6px;
+    flex-direction: column;
+    gap: 13px;
 }
-.ukuran-stok-label input[type="checkbox"] { accent-color: var(--gold); cursor: pointer; }
-.ukuran-stok-num {
+.add-modal-body::-webkit-scrollbar { width: 3px; }
+.add-modal-body::-webkit-scrollbar-thumb { background: var(--gray-200); }
+
+/* Add stok grid */
+.add-stok-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
+.add-stok-item {
+    background: var(--gray-50);
+    border: 1.5px solid var(--gray-200);
+    border-radius: 8px;
+    padding: 10px 8px;
+    text-align: center;
+    transition: .15s;
+}
+.add-stok-item:focus-within { border-color: var(--gold); background: var(--gold-xs); }
+.add-stok-size { font-size: 11px; font-weight: 700; color: var(--gray-600); margin-bottom: 5px; display: flex; align-items: center; justify-content: center; gap: 5px; }
+.add-stok-size input[type="checkbox"] { accent-color: var(--gold); cursor: pointer; }
+.add-stok-num {
     width: 100%;
     text-align: center;
     border: 1.5px solid var(--gray-200);
     border-radius: 6px;
-    padding: 7px 4px;
-    font-size: 15px;
+    padding: 5px 2px;
+    font-size: 14px;
     font-family: var(--ff-mono);
     font-weight: 700;
     color: var(--gold-dk);
-    background: #f8f7f4;
+    background: #f5f5f3;
     outline: none;
-    transition: border-color .15s, background .15s;
 }
-.ukuran-stok-num:disabled { opacity: .35; cursor: not-allowed; }
-.ukuran-stok-num:not(:disabled) { background: #fff; }
-.ukuran-stok-num:focus { border-color: var(--gold); }
+.add-stok-num:not(:disabled) { background: #fff; }
+.add-stok-num:disabled { opacity: .3; cursor: not-allowed; }
+.add-stok-num:focus { border-color: var(--gold); }
 
-/* ── Barang / Inventaris Responsive ── */
-@media (max-width: 900px) {
-  /* Stack the split panel vertically on tablet */
-  .inv-split {
-    flex-direction: column !important;
-  }
-  .inv-panel {
-    width: 100% !important;
-    max-height: 340px;
-    border-top: 1px solid var(--gray-200);
-    border-right: none;
-  }
-  .inv-katalog {
-    border-right: none !important;
-    border-bottom: 1px solid var(--gray-200);
-    min-height: 320px;
-  }
+/* ── TOAST ── */
+.inv-toast {
+    position: fixed;
+    bottom: 22px;
+    right: 22px;
+    z-index: 2000;
+    background: var(--black);
+    color: #fff;
+    border: 1px solid var(--gold-rim);
+    border-radius: 10px;
+    padding: 11px 18px;
+    font-size: 12.5px;
+    font-weight: 600;
+    box-shadow: 0 8px 24px rgba(0,0,0,.22);
+    opacity: 0;
+    transform: translateY(8px);
+    pointer-events: none;
+    transition: all .22s ease;
+    max-width: 280px;
 }
+.inv-toast.show { opacity: 1; transform: translateY(0); }
 
-@media (max-width: 768px) {
-  /* Full-screen inventory layout */
-  .inv-page {
-    height: auto !important;
-    min-height: calc(100vh - 52px - 44px - 28px);
-    overflow: visible !important;
-    margin: -14px !important;
-  }
-  .inv-tabbar { padding: 0 12px; gap: 0; overflow-x: auto; }
-  .inv-tab    { padding: 0 14px; font-size: 12px; flex-shrink: 0; }
+/* Photo upload preview */
+.photo-preview-box {
+    width: 100%;
+    height: 100px;
+    border: 2px dashed var(--gray-300);
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    cursor: pointer;
+    background: var(--gray-50);
+    transition: .15s;
+    overflow: hidden;
+    position: relative;
+}
+.photo-preview-box:hover { border-color: var(--gold-rim); background: var(--gold-xs); }
+.photo-preview-box img {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 6px;
+}
+.photo-preview-placeholder { color: var(--gray-400); font-size: 12px; display: flex; flex-direction: column; align-items: center; gap: 4px; }
 
-  /* Catalog grid: 2 columns on narrow screens */
-  .inv-grid {
-    grid-template-columns: repeat(2, 1fr) !important;
-    padding: 10px;
-  }
-
-  /* Stacked split view */
-  .inv-split {
-    flex-direction: column !important;
-    overflow: visible !important;
-  }
-  .inv-katalog {
-    overflow: visible !important;
-    border-right: none !important;
-    min-height: 0;
-  }
-  .inv-grid {
-    max-height: 60vh;
-    overflow-y: auto;
-  }
-  .inv-panel {
-    width: 100% !important;
-    max-height: none;
-    border-top: 2px solid var(--gold-md);
-  }
-
-  /* Tab 2 table-responsive */
-  .tab2-table-wrap {
-    overflow-x: auto;
-    -webkit-overflow-scrolling: touch;
-  }
+/* Responsive */
+@media (max-width: 1200px) {
+    .inv-grid { grid-template-columns: repeat(5, 1fr); }
+}
+@media (max-width: 960px) {
+    .inv-grid { grid-template-columns: repeat(4, 1fr); }
+}
+@media (max-width: 720px) {
+    .inv-grid { grid-template-columns: repeat(3, 1fr); }
+    .edit-modal-body { grid-template-columns: 1fr; }
+    .edit-profile-col { border-left: none; border-top: 1px solid var(--gray-100); }
+}
+@media (max-width: 500px) {
+    .inv-grid { grid-template-columns: repeat(2, 1fr); }
+    .inv-stat-chips { display: none; }
 }
 </style>
 
-{{-- ═══════════════════════════════════════════
-     STRUKTUR HTML UTAMA
-═══════════════════════════════════════════ --}}
+{{-- ══════════════════════════════════════════
+     PAGE STRUCTURE
+══════════════════════════════════════════ --}}
 <div class="inv-page">
 
-    {{-- ── TAB BAR ── --}}
-    <div class="inv-tabbar">
-        <div class="inv-tab active" id="tabKelola" onclick="switchInvTab('kelola')">
-            <i class="bi bi-box-seam"></i> Kelola Stok
-            <div class="inv-tab-badge">{{ $totalBarang }}</div>
+    {{-- ── TOOLBAR ── --}}
+    <div class="inv-toolbar">
+        {{-- Search --}}
+        <div class="inv-search-wrap">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#bbb" stroke-width="2.5">
+                <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
+            </svg>
+            <input id="invSearch" placeholder="Cari nama barang atau ukuran…" oninput="renderGrid()">
         </div>
-        @if($isOwner)
-        <div class="inv-tab" id="tabTambah" onclick="switchInvTab('tambah')">
-            <i class="bi bi-plus-circle"></i> Tambah Barang Baru
+
+        {{-- Filter chips --}}
+        <div class="inv-stat-chips" id="invChips"></div>
+
+        {{-- Right actions --}}
+        <div class="inv-toolbar-right">
+            @if($isOwner)
+            <button class="btn-gold" onclick="openAddModal()">
+                <i class="bi bi-plus-circle-fill"></i> Tambah Produk
+            </button>
+            @endif
         </div>
-        @endif
     </div>
 
-    {{-- ══════════════════════════════════════
-         TAB KONTEN 1: KELOLA STOK
-    ══════════════════════════════════════ --}}
-    <div class="inv-tab-content active" id="contentKelola">
-        <div class="inv-split">
+    {{-- ── PRODUCT GRID ── --}}
+    <div class="inv-body">
+        <div class="inv-grid" id="invGrid"></div>
+    </div>
+</div>
 
-            {{-- ── KIRI: Katalog ── --}}
-            <div class="inv-katalog">
-                <div class="inv-kat-top">
-                    <div class="inv-search">
-                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none"
-                             stroke="#bbb" stroke-width="2.5">
-                            <circle cx="11" cy="11" r="8"/>
-                            <path d="m21 21-4.35-4.35"/>
-                        </svg>
-                        <input id="invSearch" placeholder="Cari nama baju atau ukuran…"
-                               oninput="renderGrid()">
-                    </div>
-                    <div class="inv-chips" id="invChips"></div>
-                </div>
-                <div class="inv-grid" id="invGrid"></div>
+{{-- ════ EDIT MODAL ════ --}}
+<div class="inv-modal-ov" id="editOv" onclick="if(event.target===this)closeEditModal()">
+    <div class="edit-modal">
+        <div class="edit-modal-head">
+            <div>
+                <div class="edit-modal-title" id="editModalTitle">Edit Barang</div>
+                <div class="edit-modal-sub" id="editModalSub">Perbarui data & stok</div>
             </div>
+            <button class="modal-x" onclick="closeEditModal()"><i class="bi bi-x-lg"></i></button>
+        </div>
 
-            {{-- ── KANAN: Panel Stok ── --}}
-            <div class="inv-panel" id="invPanel">
+        <div class="edit-modal-body">
 
-                {{-- State kosong: tampil saat tidak ada item dipilih --}}
-                <div class="inv-panel-empty" id="panelEmpty">
-                    <div class="inv-panel-empty-ico"><i class="bi bi-bag-heart" style="font-size:36px;opacity:.3;color:var(--gold-dk)"></i></div>
-                    <div class="inv-panel-empty-txt">
-                        Pilih barang dari katalog<br>untuk mulai mengelola stok
-                    </div>
-                </div>
-
-                {{-- State aktif: tampil saat item dipilih --}}
-                <div id="panelActive" style="display:none;flex-direction:column;flex:1;overflow:hidden">
-
-                    {{-- Header --}}
-                    <div class="inv-panel-head">
-                        <div class="inv-panel-nama" id="panelNama">—</div>
-                        <div class="inv-panel-sub" id="panelSub">—</div>
-                    </div>
-
-                    {{-- Body (scrollable) --}}
-                    <div class="inv-panel-body">
-
-                        {{-- Bagian 1: Stok per ukuran --}}
-                        <div class="inv-sec-title"><i class="bi bi-grid-3x3-gap"></i> Stok per Ukuran</div>
-                        <div id="stokRows">
-                            {{-- Diisi oleh JavaScript saat barang dipilih --}}
-                        </div>
-
-                        {{-- Ringkasan total --}}
-                        <div class="stok-summary">
-                            <span class="stok-summary-lbl">Total Stok</span>
-                            <span class="stok-summary-val" id="totalStokVal">0 pcs</span>
-                        </div>
-
-                        {{-- Bagian 2: Status barang --}}
-                        <div class="inv-sec-title"><i class="bi bi-bookmark"></i> Status Barang</div>
-                        <select class="status-select" id="panelStatus"
-                                onchange="updateStatusColor()">
-                            <option value="Tersedia">Tersedia</option>
-                            <option value="Disewa">Sedang Disewa</option>
-                            <option value="Laundry">Laundry</option>
-                            <option value="Rusak">Rusak / Perbaikan</option>
-                        </select>
-
-                        {{-- Bagian 3: Info harga (read-only untuk referensi) --}}
-                        <div class="inv-sec-title" style="margin-top:8px"><i class="bi bi-cash"></i> Harga Sewa</div>
-                        <div style="padding:10px 12px;background:#f8f7f4;border-radius:8px;
-                            border:1px solid var(--gray-200);margin-bottom:4px">
-                            <span style="font-family:var(--ff-mono);font-size:15px;
-                                font-weight:700;color:var(--gold-dk)" id="panelHarga">—</span>
-                            <span style="font-size:10.5px;color:#aaa"> / hari</span>
-                        </div>
-
-                    </div>
-
-                    {{-- Footer: Tombol aksi --}}
-                    <div class="inv-panel-foot">
-                        <button class="btn-save-stok" id="btnSaveStok"
-                                onclick="saveStok()">
-                            <i class=\"bi bi-floppy2-fill\"></i> Simpan Perubahan Stok
-                        </button>
-                        @if($isOwner)
-                        <button class="btn-delete-barang" id="btnDeleteBarang"
-                                onclick="deleteBarang()">
-                            <i class="bi bi-trash"></i> Hapus Barang dari Inventaris
-                        </button>
-                        @endif
-                    </div>
-
-                </div>{{-- end panelActive --}}
-
-            </div>{{-- end inv-panel --}}
-
-        </div>{{-- end inv-split --}}
-    </div>{{-- end contentKelola --}}
-
-    {{-- ══════════════════════════════════════
-         TAB KONTEN 2: TAMBAH BARANG (Owner)
-    ══════════════════════════════════════ --}}
-    @if($isOwner)
-    <div class="inv-tab-content" id="contentTambah">
-        <div class="tambah-wrap">
-
-            <div style="max-width:800px">
-                <div style="margin-bottom:20px">
-                    <div style="font-size:16px;font-weight:700;color:var(--black)">
-                        <i class="bi bi-plus-circle-fill"></i> Daftarkan Barang Baru
-                    </div>
-                    <div style="font-size:12px;color:var(--gray-400);margin-top:4px">
-                        Isi semua detail barang, lalu tentukan stok awal per ukuran.
-                        Barang baru otomatis berstatus <strong>Tersedia</strong>.
-                    </div>
-                </div>
-
-                <form id="formTambah" enctype="multipart/form-data">
+            {{-- LEFT: form --}}
+            <div class="edit-form-col">
+                <form id="editForm" enctype="multipart/form-data">
                 @csrf
+                <input type="hidden" id="editId" name="_id" value="">
+                <input type="hidden" id="editMethod" name="_method" value="PUT">
+                <input type="hidden" id="editHapusFoto" name="hapus_foto" value="0">
+                <input type="hidden" id="editStokJson" name="stok" value="{}">
+                <input type="hidden" id="editUkuranLabel" name="ukuran" value="">
 
-                <div class="tambah-grid">
-
+                <div style="display:flex;flex-direction:column;gap:12px">
                     <div class="f-group">
-                        <label>Nama Baju *</label>
-                        <input type="text" name="nama_barang" class="f-inp"
-                               placeholder="Contoh: Baju Bodo Sutra Hijau" required>
+                        <label class="f-label">Nama Barang *</label>
+                        <input type="text" class="f-inp" id="editNama" name="nama_barang" placeholder="Nama barang" required>
                     </div>
-
-                    <div class="f-group">
-                        <label>Harga Sewa / Hari *</label>
-                        <input type="number" name="harga_sewa" class="f-inp"
-                               placeholder="200000" min="0" step="1000" required>
-                    </div>
-
-                    <div class="f-group full-col">
-                        <label>Label Ukuran *</label>
-                        <input type="text" name="ukuran" id="tambahUkuranLabel" class="f-inp"
-                               placeholder="Diisi otomatis dari centang ukuran di bawah…"
-                               readonly
-                               style="background:var(--gray-50);color:var(--gray-500)">
-                        <span style="font-size:10.5px;color:#aaa;margin-top:3px">
-                            Label ini terisi otomatis berdasarkan ukuran yang Anda centang.
-                        </span>
-                    </div>
-
-                    <div class="f-group full-col">
-                        <label>Stok Awal per Ukuran *</label>
-                        <div class="ukuran-stok-grid">
-                            @foreach(['S','M','L','XL'] as $uk)
-                            <div class="ukuran-stok-item">
-                                <div class="ukuran-stok-label">
-                                    <input type="checkbox"
-                                           class="ukuran-cb"
-                                           data-ukuran="{{ $uk }}"
-                                           onchange="onUkuranChange()">
-                                    Size {{ $uk }}
-                                </div>
-                                <input type="number"
-                                       class="ukuran-stok-num"
-                                       data-ukuran="{{ $uk }}"
-                                       value="0" min="0"
-                                       disabled
-                                       oninput="onUkuranChange()">
-                            </div>
-                            @endforeach
+                    <div class="f-grid2">
+                        <div class="f-group">
+                            <label class="f-label">Harga Sewa / Hari *</label>
+                            <input type="number" class="f-inp" id="editHarga" name="harga_sewa"
+                                   placeholder="200000" min="0" step="1000" required
+                                   oninput="updateProfilePrice()">
                         </div>
-                        {{-- Hidden inputs yang dikirim ke server --}}
-                        <input type="hidden" name="stok" id="tambahStokJson">
+                        <div class="f-group">
+                            <label class="f-label">Status Barang</label>
+                            <select class="f-sel" id="editStatus" name="status_barang" onchange="updateProfileStatus()">
+                                <option value="Tersedia">Tersedia</option>
+                                <option value="Disewa">Sedang Disewa</option>
+                                <option value="Laundry">Laundry</option>
+                                <option value="Rusak">Rusak / Perbaikan</option>
+                            </select>
+                        </div>
                     </div>
-
-                    <div class="f-group full-col">
-                        <label>Foto Barang</label>
-                        <input type="file" name="foto" class="f-inp"
+                    <div class="f-group">
+                        <label class="f-label">Stok per Ukuran</label>
+                        <div class="stok-edit-grid" id="editStokGrid"></div>
+                    </div>
+                    <div class="f-group">
+                        <label class="f-label">Foto Barang</label>
+                        <div class="photo-preview-box" id="editPhotoPrev"
+                             onclick="document.getElementById('editFotoFile').click()">
+                            <div class="photo-preview-placeholder" id="editPhotoPlaceholder">
+                                <i class="bi bi-cloud-arrow-up" style="font-size:22px;color:#ccc"></i>
+                                <span>Klik untuk ganti foto</span>
+                            </div>
+                        </div>
+                        <input type="file" id="editFotoFile" name="foto"
                                accept="image/jpeg,image/png,image/jpg"
-                               style="padding:7px 12px;cursor:pointer">
-                        <span style="font-size:10.5px;color:#aaa;margin-top:2px">
-                            Format JPG / PNG, maksimal 2 MB. Kosongkan jika belum ada foto.
-                        </span>
+                               style="display:none" onchange="previewEditFoto(this)">
+                        <button type="button" id="editDelFotoBtn"
+                                onclick="hapusEditFoto()"
+                                style="display:none;margin-top:5px;background:transparent;border:1px solid rgba(220,52,52,.3);border-radius:7px;padding:5px 10px;font-size:11px;color:#c0392b;cursor:pointer;font-family:var(--ff)">
+                            <i class="bi bi-trash3"></i> Hapus Foto
+                        </button>
                     </div>
-
-                </div>{{-- end tambah-grid --}}
-
-                <div style="display:flex;gap:12px;justify-content:flex-end;margin-top:20px">
-                    <button type="button" onclick="resetFormTambah()" class="btn-white">
-                        ↺ Reset Form
-                    </button>
-                    <button type="submit" class="btn-gold"
-                            style="padding:10px 28px;font-size:13.5px">
-                        <i class="bi bi-floppy2-fill"></i> Simpan Barang Baru
-                    </button>
                 </div>
-
                 </form>
             </div>
 
+            {{-- RIGHT: product profile --}}
+            <div class="edit-profile-col">
+                <div class="edit-profile-img" id="profileImgWrap">
+                    <div class="pcard-img-placeholder"><i class="bi bi-bag-heart"></i></div>
+                </div>
+                <div class="edit-profile-name" id="profileName">—</div>
+                <div class="edit-profile-price" id="profilePrice">—</div>
+                <div class="edit-profile-status ep-tersedia" id="profileStatus">Tersedia</div>
+                <hr class="edit-profile-divider">
+                <div style="font-size:9.5px;font-weight:700;color:var(--gray-400);text-transform:uppercase;letter-spacing:.8px;align-self:flex-start">Stok per Ukuran</div>
+                <div class="ep-stok-grid" id="profileStokGrid"></div>
+                <hr class="edit-profile-divider">
+                <div style="text-align:center">
+                    <div style="font-size:9px;color:#bbb;margin-bottom:3px;font-weight:600;text-transform:uppercase;letter-spacing:.5px">Total Stok</div>
+                    <div id="profileTotalStok" style="font-size:22px;font-weight:800;color:var(--gold-dk);font-family:var(--ff-mono)">0</div>
+                    <div style="font-size:9.5px;color:#bbb">pcs</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="edit-modal-foot">
+            <div class="edit-modal-foot-left">
+                @if($isOwner)
+                <button type="button" class="btn-white" id="editDeleteBtn" onclick="deleteBarangFromModal()"
+                        style="color:#c0392b;border-color:rgba(220,52,52,.3)">
+                    <i class="bi bi-trash3"></i> Hapus Barang
+                </button>
+                @endif
+            </div>
+            <div style="display:flex;gap:8px">
+                <button type="button" class="btn-white" onclick="closeEditModal()">Batal</button>
+                <button type="button" class="btn-gold" onclick="saveEditBarang()">
+                    <i class="bi bi-floppy2-fill"></i> Simpan Perubahan
+                </button>
+            </div>
         </div>
     </div>
-    @endif
+</div>
 
-</div>{{-- end .inv-page --}}
+{{-- ════ ADD MODAL (Owner only) ════ --}}
+@if($isOwner)
+<div class="inv-modal-ov" id="addOv" onclick="if(event.target===this)closeAddModal()">
+    <div class="add-modal">
+        <div class="edit-modal-head">
+            <div>
+                <div class="edit-modal-title">Tambah Produk Baru</div>
+                <div class="edit-modal-sub">Produk baru otomatis berstatus Tersedia</div>
+            </div>
+            <button class="modal-x" onclick="closeAddModal()"><i class="bi bi-x-lg"></i></button>
+        </div>
+        <div class="add-modal-body">
+            <form id="addForm" enctype="multipart/form-data">
+            @csrf
+            <div style="display:flex;flex-direction:column;gap:13px">
+                <div class="f-group">
+                    <label class="f-label">Nama Barang *</label>
+                    <input type="text" class="f-inp" name="nama_barang" id="addNama" placeholder="Contoh: Baju Bodo Sutra Hijau" required>
+                </div>
+                <div class="f-grid2">
+                    <div class="f-group">
+                        <label class="f-label">Harga Sewa / Hari *</label>
+                        <input type="number" class="f-inp" name="harga_sewa" id="addHarga" placeholder="200000" min="0" step="1000" required>
+                    </div>
+                    <div class="f-group">
+                        <label class="f-label">Label Ukuran</label>
+                        <input type="text" class="f-inp" id="addUkuranLabel" name="ukuran" placeholder="Otomatis dari centang"
+                               readonly style="background:var(--gray-50);color:var(--gray-500)">
+                    </div>
+                </div>
+                <div class="f-group">
+                    <label class="f-label">Stok Awal per Ukuran *</label>
+                    <div class="add-stok-grid">
+                        @foreach(['S','M','L','XL'] as $uk)
+                        <div class="add-stok-item">
+                            <div class="add-stok-size">
+                                <input type="checkbox" class="add-ukuran-cb" data-ukuran="{{ $uk }}" onchange="onAddUkuranChange()">
+                                {{ $uk }}
+                            </div>
+                            <input type="number" class="add-stok-num" data-ukuran="{{ $uk }}"
+                                   value="0" min="0" disabled oninput="onAddUkuranChange()">
+                        </div>
+                        @endforeach
+                    </div>
+                    <input type="hidden" name="stok" id="addStokJson" value="{}">
+                </div>
+                <div class="f-group">
+                    <label class="f-label">Foto Barang</label>
+                    <div class="photo-preview-box" id="addPhotoPrev"
+                         onclick="document.getElementById('addFotoFile').click()">
+                        <div class="photo-preview-placeholder">
+                            <i class="bi bi-cloud-arrow-up" style="font-size:22px;color:#ccc"></i>
+                            <span>Klik untuk upload foto (opsional)</span>
+                        </div>
+                    </div>
+                    <input type="file" id="addFotoFile" name="foto" accept="image/jpeg,image/png,image/jpg"
+                           style="display:none" onchange="previewAddFoto(this)">
+                </div>
+            </div>
+            </form>
+        </div>
+        <div class="edit-modal-foot">
+            <div></div>
+            <div style="display:flex;gap:8px">
+                <button type="button" class="btn-white" onclick="closeAddModal()">Batal</button>
+                <button type="button" class="btn-gold" onclick="saveAddBarang()">
+                    <i class="bi bi-plus-circle-fill"></i> Simpan Produk
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+@endif
 
-{{-- Element Toast --}}
-<div id="invToast" style="display: none; position: fixed; bottom: 20px; right: 20px; background: var(--black); color: #fff; padding: 12px 24px; border-radius: 8px; font-size: 13px; z-index: 9999; opacity: 0; transition: opacity 0.3s;"></div>
+{{-- Toast --}}
+<div class="inv-toast" id="invToast"></div>
 
-{{-- ═══════════════════════════════════════════
+{{-- ════════════════════════════════════════════
      JAVASCRIPT
-═══════════════════════════════════════════ --}}
+════════════════════════════════════════════ --}}
 <script>
-/* ─── Data barang dari server (sudah di-encode sebagai JSON) ─── */
+/* ─── Server data ─── */
 const INV_BARANG  = @json($barangJson);
 const IS_OWNER    = {{ $isOwner ? 'true' : 'false' }};
 const CSRF_TOKEN  = '{{ csrf_token() }}';
 
-/* ─── State halaman ─── */
-let currentFilter   = 'Semua';
-let selectedId      = null;   // id barang yang sedang dipilih di panel kanan
-let localStokState  = {};     // cache stok yang sedang diedit (belum disimpan)
-let localStatusState = null;
+/* ─── State ─── */
+let currentFilter = 'Semua';
+let editingId     = null;
 
-/* ═══════════════════════════════════════════
-   FUNGSI TAB SWITCH
-═══════════════════════════════════════════ */
-function switchInvTab(tab) {
-    ['kelola', 'tambah'].forEach(t => {
-        const tabEl     = document.getElementById('tab' + cap(t));
-        const contentEl = document.getElementById('content' + cap(t));
-        if (!tabEl || !contentEl) return;
-        tabEl.classList.toggle('active', t === tab);
-        contentEl.classList.toggle('active', t === tab);
-    });
-}
-const cap = s => s.charAt(0).toUpperCase() + s.slice(1);
-
-/* ═══════════════════════════════════════════
-   RENDER CHIPS FILTER
-═══════════════════════════════════════════ */
+/* ─── Filter definitions ─── */
 const FILTERS = [
-    { label: 'Semua',    count: {{ $totalBarang }} },
-    { label: 'Tersedia', count: {{ $barangTersedia }} },
-    { label: 'Disewa',   count: {{ $barangDisewa }} },
-    { label: 'Laundry',  count: {{ $barangLaundry }} },
-    { label: 'Rusak',    count: {{ $barangRusak }} },
+    { label: 'Semua',    count: {{ $totalBarang }},    cls: '' },
+    { label: 'Tersedia', count: {{ $barangTersedia }}, cls: '' },
+    { label: 'Disewa',   count: {{ $barangDisewa }},   cls: '' },
+    { label: 'Laundry',  count: {{ $barangLaundry }},  cls: '' },
+    { label: 'Rusak',    count: {{ $barangRusak }},     cls: '' },
 ];
 
+/* ═══════════════════════════════════════
+   CHIPS
+═══════════════════════════════════════ */
 function renderChips() {
     document.getElementById('invChips').innerHTML = FILTERS.map(f =>
-        `<div class="inv-chip${f.label === currentFilter ? ' active' : ''}"
+        `<div class="inv-stat-chip${f.label === currentFilter ? ' active' : ''}"
               onclick="setFilter('${f.label}')">
-            ${f.label} (${f.count})
+            ${f.label}
+            <span class="chip-count">${f.count}</span>
         </div>`
     ).join('');
 }
 
 function setFilter(label) {
     currentFilter = label;
+    renderChips();
     renderGrid();
 }
 
-/* ═══════════════════════════════════════════
-   RENDER GRID KATALOG
-═══════════════════════════════════════════ */
-function renderGrid() {
-    const query   = document.getElementById('invSearch').value.toLowerCase().trim();
-    const grid    = document.getElementById('invGrid');
+/* ═══════════════════════════════════════
+   PRODUCT GRID
+═══════════════════════════════════════ */
+const fmtRp = n => 'Rp ' + Math.round(n).toLocaleString('id-ID');
 
-    // Filter barang sesuai chip aktif dan query pencarian
+function renderGrid() {
+    const q     = document.getElementById('invSearch').value.toLowerCase().trim();
+    const grid  = document.getElementById('invGrid');
+
     const visible = INV_BARANG.filter(b => {
-        const statusMatch =
-            currentFilter === 'Semua'    ? true :
-            currentFilter === 'Tersedia' ? b.status === 'Tersedia' :
-            currentFilter === 'Disewa'   ? b.status === 'Disewa'   :
-            currentFilter === 'Laundry'  ? b.status === 'Laundry'  :
-            b.status === 'Rusak';
-        const textMatch = !query ||
-            b.nama.toLowerCase().includes(query) ||
-            (b.ukuran || '').toLowerCase().includes(query);
-        return statusMatch && textMatch;
+        if (currentFilter !== 'Semua' && b.status !== currentFilter) return false;
+        if (q && !b.nama.toLowerCase().includes(q) && !(b.ukuran||'').toLowerCase().includes(q)) return false;
+        return true;
     });
 
     if (!visible.length) {
-        grid.innerHTML = `<div style="grid-column:1/-1;padding:48px;text-align:center;
-            color:#bbb;font-size:12px">Tidak ada barang yang sesuai filter</div>`;
-        renderChips();
+        grid.innerHTML = `<div class="inv-empty">
+            <span class="inv-empty-ico"><i class="bi bi-search"></i></span>
+            <div style="font-size:14px;font-weight:600;color:var(--black);margin-bottom:5px">Tidak ada produk ditemukan</div>
+            <div style="font-size:12px">Coba ubah filter atau kata kunci pencarian</div>
+        </div>`;
         return;
     }
 
-    /*
-     * Setiap kartu menampilkan:
-     * - Foto (jika ada) atau emoji 👘 sebagai placeholder
-     * - Badge status di pojok kiri atas
-     * - Checkmark di pojok kanan atas jika kartu ini yang sedang dipilih
-     * - Nama, label ukuran, dan total stok
-     */
+    const stripeClass = s => ({Tersedia:'stripe-tersedia',Disewa:'stripe-disewa',Laundry:'stripe-laundry',Rusak:'stripe-rusak'})[s]||'stripe-tersedia';
+    const totalStok   = b => Object.values(b.stok).reduce((a,v)=>a+(parseInt(v)||0),0);
+    const hasFoto     = b => b.foto && b.foto !== 'null' && b.foto.trim() !== '';
+    const barcodeId   = id => 'BB-'+String(id).padStart(4,'0');
+
     grid.innerHTML = visible.map(b => {
-        const isSelected  = b.id === selectedId;
-        const hasFoto     = b.foto && b.foto !== 'null' && b.foto !== '';
-        const statusClass = b.status.toLowerCase().replace(' ', '-').replace('tersedia','tersedia')
-                                    .replace('sedang disewa','disewa');
-        const stokClass   = b.total_stok === 0 ? 'inv-stok-zero' : '';
+        const stok = totalStok(b);
+        return `<div class="pcard">
+            <div class="pcard-status-stripe ${stripeClass(b.status)}"></div>
 
-        // Kita tampilkan stok terkini dari localStokState jika sedang diedit
-        const displayStok = (isSelected && Object.keys(localStokState).length)
-            ? Object.values(localStokState).reduce((a,v) => a + (parseInt(v)||0), 0)
-            : b.total_stok;
+            <div class="pcard-img">
+                ${hasFoto(b)
+                    ? `<img src="/${b.foto}" alt="${b.nama}" onerror="this.style.display='none'">`
+                    : `<div class="pcard-img-placeholder"><i class="bi bi-bag-heart"></i></div>`
+                }
+                <div class="pcard-stok-badge${stok===0?' stok-0':''}">Stok: ${stok}</div>
 
-        return `<div class="inv-card${isSelected ? ' selected' : ''}"
-                     onclick="selectBarang(${b.id})">
-            <div class="inv-card-img">
-                ${hasFoto ? `<img src="/${b.foto}" onerror="this.style.display='none'">` : ''}
-                <span style="font-size:32px${hasFoto ? ';display:none' : ''}"><i class='bi bi-bag-heart' style='color:var(--gold-dk);opacity:.5'></i></span>
-                <div class="inv-status-badge ${b.status.toLowerCase()}">${b.status}</div>
-            </div>
-            <div class="inv-card-body">
-                <div class="inv-card-nama">${b.nama}</div>
-                <div class="inv-card-meta">${b.ukuran || 'Belum ada ukuran'}</div>
-                <div class="inv-card-stok">
-                    <span class="inv-stok-num ${stokClass}">${displayStok} pcs</span>
-                    <span style="font-size:10px;color:#aaa">stok</span>
+                <!-- Hover actions -->
+                <div class="pcard-actions">
+                    <button class="pcard-action-btn edit-btn" title="Edit"
+                            onclick="openEditModal(${b.id})">
+                        <i class="bi bi-pencil-fill"></i>
+                    </button>
+                    ${IS_OWNER ? `<button class="pcard-action-btn del-btn" title="Hapus"
+                            onclick="deleteBarang(${b.id},'${b.nama.replace(/'/g,"\\'")}')">
+                        <i class="bi bi-trash3-fill"></i>
+                    </button>` : ''}
                 </div>
+            </div>
+
+            <div class="pcard-body">
+                <div class="pcard-ukuran">${b.ukuran||'—'}</div>
+                <div class="pcard-name">${b.nama}</div>
+                <div class="pcard-barcode">${barcodeId(b.id)}</div>
+                <div class="pcard-price">${fmtRp(b.harga)}<small>/hari</small></div>
             </div>
         </div>`;
     }).join('');
-
-    renderChips();
 }
 
-/* ═══════════════════════════════════════════
-   PILIH BARANG → ISI PANEL KANAN
-═══════════════════════════════════════════ */
-function selectBarang(id) {
-    // Jika klik barang yang sama, batalkan seleksi
-    if (selectedId === id) {
-        selectedId      = null;
-        localStokState  = {};
-        localStatusState = null;
-        showPanelEmpty();
-        renderGrid();
-        return;
-    }
-
-    selectedId = id;
+/* ═══════════════════════════════════════
+   EDIT MODAL
+═══════════════════════════════════════ */
+function openEditModal(id) {
     const b = INV_BARANG.find(x => x.id === id);
     if (!b) return;
+    editingId = id;
 
-    // Salin stok ke state lokal agar perubahan tidak langsung memodifikasi data asli
-    localStokState  = { ...b.stok };
-    localStatusState = b.status;
+    /* — header — */
+    document.getElementById('editModalTitle').textContent = b.nama;
+    document.getElementById('editModalSub').textContent   = 'ID Barang: #BB-'+String(id).padStart(4,'0');
 
-    // Isi header panel
-    document.getElementById('panelNama').textContent = b.nama;
-    document.getElementById('panelSub').textContent  =
-        `#BB-${String(id).padStart(3,'0')} · Rp ${fmtRp(b.harga)} / hari`;
-    document.getElementById('panelHarga').textContent = fmtRp(b.harga);
+    /* — form fields — */
+    document.getElementById('editId').value     = id;
+    document.getElementById('editNama').value   = b.nama;
+    document.getElementById('editHarga').value  = b.harga;
+    document.getElementById('editStatus').value = b.status;
+    document.getElementById('editHapusFoto').value = '0';
 
-    // Set status dropdown
-    document.getElementById('panelStatus').value = b.status;
-    updateStatusColor();
+    /* — foto preview — */
+    const hasFoto = b.foto && b.foto !== 'null' && b.foto.trim() !== '';
+    const prevBox = document.getElementById('editPhotoPrev');
+    const placeholder = document.getElementById('editPhotoPlaceholder');
+    const delBtn  = document.getElementById('editDelFotoBtn');
+    prevBox.style.backgroundImage = '';
+    placeholder.style.display = 'flex';
+    // Remove old preview img if any
+    const oldImg = prevBox.querySelector('img');
+    if (oldImg) oldImg.remove();
 
-    // Render baris stok per ukuran
-    renderStokRows(b);
+    if (hasFoto) {
+        const img = document.createElement('img');
+        img.src   = '/' + b.foto;
+        img.style.cssText = 'position:absolute;inset:0;width:100%;height:100%;object-fit:cover;border-radius:6px';
+        prevBox.appendChild(img);
+        placeholder.style.display = 'none';
+        delBtn.style.display = 'block';
+    } else {
+        delBtn.style.display = 'none';
+    }
+    document.getElementById('editFotoFile').value = '';
 
-    // Tampilkan panel aktif
-    showPanelActive();
-    renderGrid(); // re-render untuk update tanda checkmark
-}
-
-/*
- * Render baris stok: satu baris per ukuran yang terdaftar.
- * Jika barang belum punya ukuran sama sekali, tampilkan pesan kosong.
- */
-function renderStokRows(b) {
+    /* — stok grid (form) — */
     const sizes = Object.keys(b.stok);
-    const rows  = document.getElementById('stokRows');
-
-    if (!sizes.length) {
-        rows.innerHTML = `<div style="padding:16px;text-align:center;color:#aaa;font-size:12px">
-            Barang ini belum memiliki data ukuran & stok.
-        </div>`;
-        updateTotalStok();
-        return;
+    const stokGrid = document.getElementById('editStokGrid');
+    if (sizes.length) {
+        stokGrid.innerHTML = sizes.map(s =>
+            `<div class="stok-edit-item">
+                <div class="stok-edit-size">Size ${s}</div>
+                <input class="stok-edit-input" type="number" min="0"
+                       id="eStok_${s}" data-size="${s}"
+                       value="${b.stok[s]||0}"
+                       oninput="syncEditStok()">
+            </div>`
+        ).join('');
+    } else {
+        stokGrid.innerHTML = '<div style="color:#bbb;font-size:11px;padding:8px;grid-column:1/-1">Belum ada data ukuran</div>';
     }
 
-    rows.innerHTML = sizes.map(uk => `
-        <div class="stok-row">
-            <div class="stok-size-lbl">Size ${uk}</div>
-            <div class="stok-ctrl">
-                <button class="stok-btn minus" type="button"
-                        onclick="adjustStokLocal('${uk}', -1)">−</button>
-                <input class="stok-input" type="number" min="0"
-                       id="stok_${uk}"
-                       value="${localStokState[uk] ?? 0}"
-                       oninput="onStokInput('${uk}', this.value)">
-                <button class="stok-btn" type="button"
-                        onclick="adjustStokLocal('${uk}', 1)">+</button>
-            </div>
-        </div>
-    `).join('');
+    /* — profile card (right) — */
+    updateProfileCard(b, b.harga, b.status);
 
-    updateTotalStok();
+    document.getElementById('editOv').classList.add('show');
 }
 
-/* Sesuaikan stok satu ukuran via tombol +/- */
-function adjustStokLocal(ukuran, delta) {
-    const input = document.getElementById(`stok_${ukuran}`);
-    if (!input) return;
-    const newVal = Math.max(0, (parseInt(input.value) || 0) + delta);
-    input.value          = newVal;
-    localStokState[ukuran] = newVal;
-    updateTotalStok();
+function updateProfileCard(b, harga, status) {
+    const hasFoto = b.foto && b.foto !== 'null' && b.foto.trim() !== '';
+
+    /* image */
+    const wrap = document.getElementById('profileImgWrap');
+    wrap.innerHTML = hasFoto
+        ? `<img src="/${b.foto}" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover">`
+        : `<div class="pcard-img-placeholder" style="font-size:36px"><i class="bi bi-bag-heart"></i></div>`;
+
+    document.getElementById('profileName').textContent = b.nama;
+    document.getElementById('profilePrice').innerHTML  =
+        fmtRp(harga||b.harga) + '<small>/hari</small>';
+
+    /* status badge */
+    const statusEl = document.getElementById('profileStatus');
+    const cls = {Tersedia:'ep-tersedia',Disewa:'ep-disewa',Laundry:'ep-laundry',Rusak:'ep-rusak'};
+    statusEl.className = 'edit-profile-status ' + (cls[status||b.status]||'ep-tersedia');
+    statusEl.textContent = status || b.status;
+
+    /* stok per ukuran (profile) */
+    syncEditStok();
 }
 
-/* Sinkronkan saat nilai input diketik langsung */
-function onStokInput(ukuran, rawVal) {
-    localStokState[ukuran] = Math.max(0, parseInt(rawVal) || 0);
-    updateTotalStok();
+function syncEditStok() {
+    if (!editingId) return;
+    const b = INV_BARANG.find(x => x.id === editingId);
+    if (!b) return;
+
+    const inputs = document.querySelectorAll('.stok-edit-input');
+    const stokObj = {};
+    let total = 0;
+    inputs.forEach(inp => {
+        const s = inp.dataset.size;
+        const v = Math.max(0, parseInt(inp.value)||0);
+        stokObj[s] = v;
+        total += v;
+    });
+
+    /* update hidden JSON */
+    document.getElementById('editStokJson').value = JSON.stringify(stokObj);
+    document.getElementById('editUkuranLabel').value = Object.keys(stokObj).join(', ');
+
+    /* update profile stok grid */
+    const profileGrid = document.getElementById('profileStokGrid');
+    profileGrid.innerHTML = Object.entries(stokObj).map(([s,v]) =>
+        `<div class="ep-stok-row">
+            <span class="ep-stok-label">Size ${s}</span>
+            <span class="ep-stok-val">${v} pcs</span>
+        </div>`
+    ).join('');
+    document.getElementById('profileTotalStok').textContent = total;
 }
 
-/* Hitung dan tampilkan total stok dari semua ukuran */
-function updateTotalStok() {
-    const total = Object.values(localStokState).reduce((a, v) => a + (parseInt(v) || 0), 0);
-    document.getElementById('totalStokVal').textContent = `${total} pcs`;
+function updateProfilePrice() {
+    const harga = parseInt(document.getElementById('editHarga').value)||0;
+    document.getElementById('profilePrice').innerHTML = fmtRp(harga) + '<small>/hari</small>';
 }
 
-/* Beri warna hint pada dropdown status */
-function updateStatusColor() {
-    const sel    = document.getElementById('panelStatus');
-    const colors = {
-        'Tersedia' : '#1a8050',
-        'Disewa'   : 'var(--gold-dk)',
-        'Laundry'  : '#2563eb',
-        'Rusak'    : '#c0392b',
+function updateProfileStatus() {
+    const status = document.getElementById('editStatus').value;
+    const statusEl = document.getElementById('profileStatus');
+    const cls = {Tersedia:'ep-tersedia',Disewa:'ep-disewa',Laundry:'ep-laundry',Rusak:'ep-rusak'};
+    statusEl.className = 'edit-profile-status ' + (cls[status]||'ep-tersedia');
+    statusEl.textContent = status;
+}
+
+function previewEditFoto(input) {
+    if (!input.files || !input.files[0]) return;
+    const reader = new FileReader();
+    reader.onload = e => {
+        const prevBox = document.getElementById('editPhotoPrev');
+        const placeholder = document.getElementById('editPhotoPlaceholder');
+        let img = prevBox.querySelector('img');
+        if (!img) { img = document.createElement('img'); img.style.cssText='position:absolute;inset:0;width:100%;height:100%;object-fit:cover;border-radius:6px'; prevBox.appendChild(img); }
+        img.src = e.target.result;
+        placeholder.style.display = 'none';
+        document.getElementById('editDelFotoBtn').style.display = 'block';
+        document.getElementById('editHapusFoto').value = '0';
+
+        /* update profile card image */
+        const wrap = document.getElementById('profileImgWrap');
+        let profImg = wrap.querySelector('img');
+        if (!profImg) { profImg = document.createElement('img'); profImg.style.cssText='position:absolute;inset:0;width:100%;height:100%;object-fit:cover'; wrap.appendChild(profImg); }
+        profImg.src = e.target.result;
     };
-    sel.style.color = colors[sel.value] || 'inherit';
-    localStatusState = sel.value;
+    reader.readAsDataURL(input.files[0]);
 }
 
-/* ═══════════════════════════════════════════
-   SIMPAN STOK (hit endpoint adjustStok)
-═══════════════════════════════════════════ */
-function saveStok() {
-    if (!selectedId) return;
+function hapusEditFoto() {
+    const prevBox = document.getElementById('editPhotoPrev');
+    const img = prevBox.querySelector('img');
+    if (img) img.remove();
+    document.getElementById('editPhotoPlaceholder').style.display = 'flex';
+    document.getElementById('editDelFotoBtn').style.display = 'none';
+    document.getElementById('editHapusFoto').value = '1';
+    document.getElementById('editFotoFile').value = '';
 
-    const btn    = document.getElementById('btnSaveStok');
-    btn.disabled = true;
-    btn.textContent = '⏳ Menyimpan…';
+    /* clear profile card image */
+    const wrap = document.getElementById('profileImgWrap');
+    wrap.innerHTML = `<div class="pcard-img-placeholder" style="font-size:36px"><i class="bi bi-bag-heart"></i></div>`;
+}
 
-    const formData = new FormData();
-    formData.append('_token', CSRF_TOKEN);
-    formData.append('stok', JSON.stringify(localStokState));
-    formData.append('status_barang', document.getElementById('panelStatus').value);
+function closeEditModal() {
+    document.getElementById('editOv').classList.remove('show');
+    editingId = null;
+}
 
-    fetch(`/barang/${selectedId}/stok`, {
+function saveEditBarang() {
+    if (!editingId) return;
+
+    const form = document.getElementById('editForm');
+    const fd   = new FormData();
+
+    fd.append('_token',        CSRF_TOKEN);
+    fd.append('_method',       'PUT');
+    fd.append('nama_barang',   document.getElementById('editNama').value);
+    fd.append('harga_sewa',    document.getElementById('editHarga').value);
+    fd.append('status_barang', document.getElementById('editStatus').value);
+    fd.append('stok',          document.getElementById('editStokJson').value);
+    fd.append('ukuran',        document.getElementById('editUkuranLabel').value);
+    fd.append('hapus_foto',    document.getElementById('editHapusFoto').value);
+
+    const fotoFile = document.getElementById('editFotoFile');
+    if (fotoFile.files && fotoFile.files[0]) {
+        fd.append('foto', fotoFile.files[0]);
+    }
+
+    fetch(`/barang/${editingId}`, {
         method: 'POST',
-        body: formData,
+        body: fd,
         headers: { 'X-Requested-With': 'XMLHttpRequest' }
     })
     .then(r => r.json())
     .then(data => {
         if (data.success) {
-            // Perbarui data in-memory agar tidak perlu reload halaman
-            const idx = INV_BARANG.findIndex(b => b.id === selectedId);
+            /* update in-memory */
+            const idx = INV_BARANG.findIndex(x => x.id === editingId);
             if (idx > -1) {
-                INV_BARANG[idx].stok        = data.stok;
-                INV_BARANG[idx].total_stok  = data.total_stok;
-                INV_BARANG[idx].status      = data.status;
+                INV_BARANG[idx].nama   = document.getElementById('editNama').value;
+                INV_BARANG[idx].harga  = parseFloat(document.getElementById('editHarga').value)||0;
+                INV_BARANG[idx].status = document.getElementById('editStatus').value;
+                const stokParsed = JSON.parse(document.getElementById('editStokJson').value||'{}');
+                INV_BARANG[idx].stok  = stokParsed;
+                INV_BARANG[idx].total_stok = Object.values(stokParsed).reduce((a,v)=>a+v,0);
+                INV_BARANG[idx].ukuran = document.getElementById('editUkuranLabel').value;
             }
             renderGrid();
-            showToast('✅ Stok berhasil diperbarui');
+            closeEditModal();
+            showToast('✅ Perubahan berhasil disimpan');
         } else {
             showToast('❌ ' + (data.message || 'Gagal menyimpan'));
         }
     })
-    .catch(() => showToast('❌ Terjadi kesalahan jaringan'))
-    .finally(() => {
-        btn.disabled    = false;
-        btn.innerHTML = '<i class="bi bi-floppy2-fill"></i> Simpan Perubahan Stok';
-    });
+    .catch(() => showToast('❌ Terjadi kesalahan jaringan'));
 }
 
-/* ═══════════════════════════════════════════
-   HAPUS BARANG (Owner only)
-═══════════════════════════════════════════ */
-function deleteBarang() {
-    if (!selectedId) return;
-    const b = INV_BARANG.find(x => x.id === selectedId);
+function deleteBarangFromModal() {
+    if (!editingId) return;
+    const b = INV_BARANG.find(x => x.id === editingId);
     if (!b) return;
+    deleteBarang(editingId, b.nama, true);
+}
 
-    if (!confirm(`Hapus barang "${b.nama}"?\n\nTindakan ini tidak dapat dibatalkan.`)) return;
+function deleteBarang(id, nama, fromModal = false) {
+    if (!confirm(`Hapus barang "${nama}"?\n\nTindakan ini tidak dapat dibatalkan.`)) return;
 
-    fetch(`/barang/${selectedId}`, {
+    fetch(`/barang/${id}`, {
         method: 'DELETE',
         headers: {
-            'X-CSRF-TOKEN'    : CSRF_TOKEN,
+            'X-CSRF-TOKEN': CSRF_TOKEN,
             'X-Requested-With': 'XMLHttpRequest',
-            'Accept'          : 'application/json',
+            'Accept': 'application/json',
         }
     })
     .then(r => r.json())
     .then(data => {
         if (data.success) {
-            // Hapus dari array in-memory dan reset panel
-            const idx = INV_BARANG.findIndex(x => x.id === selectedId);
+            const idx = INV_BARANG.findIndex(x => x.id === id);
             if (idx > -1) INV_BARANG.splice(idx, 1);
-
-            selectedId   = null;
-            localStokState = {};
-            showPanelEmpty();
+            if (fromModal) closeEditModal();
             renderGrid();
             showToast('🗑️ Barang berhasil dihapus');
         } else {
@@ -1103,125 +1213,112 @@ function deleteBarang() {
     .catch(() => showToast('❌ Terjadi kesalahan jaringan'));
 }
 
-/* ═══════════════════════════════════════════
-   FORM TAMBAH BARANG (Tab 2, Owner only)
-═══════════════════════════════════════════ */
+/* ═══════════════════════════════════════
+   ADD MODAL
+═══════════════════════════════════════ */
+function openAddModal() {
+    document.getElementById('addOv').classList.add('show');
+}
+function closeAddModal() {
+    document.getElementById('addOv').classList.remove('show');
+    document.getElementById('addForm').reset();
+    document.querySelectorAll('.add-stok-num').forEach(i=>{i.disabled=true;i.value=0;});
+    document.getElementById('addUkuranLabel').value='';
+    document.getElementById('addStokJson').value='{}';
+    /* clear photo preview */
+    const pv = document.getElementById('addPhotoPrev');
+    const img = pv.querySelector('img');
+    if (img) img.remove();
+}
 
-/* Update label ukuran dan hidden stok JSON saat checkbox/input berubah */
-function onUkuranChange() {
-    const checkboxes = document.querySelectorAll('.ukuran-cb');
-    const ukuranList = [];
-    const stokObj    = {};
-
-    checkboxes.forEach(cb => {
+function onAddUkuranChange() {
+    const ukuranList = [], stokObj = {};
+    document.querySelectorAll('.add-ukuran-cb').forEach(cb => {
         const uk    = cb.dataset.ukuran;
-        const input = document.querySelector(`.ukuran-stok-num[data-ukuran="${uk}"]`);
+        const input = document.querySelector(`.add-stok-num[data-ukuran="${uk}"]`);
         if (!input) return;
-
         if (cb.checked) {
             input.disabled = false;
-            const jumlah   = parseInt(input.value) || 0;
-            if (jumlah > 0) {
-                ukuranList.push(uk);
-                stokObj[uk] = jumlah;
-            }
+            const j = parseInt(input.value)||0;
+            if (j > 0) { ukuranList.push(uk); stokObj[uk] = j; }
         } else {
             input.disabled = true;
-            input.value    = 0;
+            input.value = 0;
         }
     });
-
-    document.getElementById('tambahUkuranLabel').value =
-        ukuranList.length ? ukuranList.join(', ') : '';
-    document.getElementById('tambahStokJson').value = JSON.stringify(stokObj);
+    document.getElementById('addUkuranLabel').value = ukuranList.join(', ');
+    document.getElementById('addStokJson').value = JSON.stringify(stokObj);
 }
 
-function resetFormTambah() {
-    document.getElementById('formTambah').reset();
-    document.querySelectorAll('.ukuran-stok-num').forEach(i => {
-        i.disabled = true;
-        i.value    = 0;
-    });
-    document.getElementById('tambahUkuranLabel').value = '';
-    document.getElementById('tambahStokJson').value    = '{}';
+function previewAddFoto(input) {
+    if (!input.files || !input.files[0]) return;
+    const reader = new FileReader();
+    reader.onload = e => {
+        const pv = document.getElementById('addPhotoPrev');
+        let img = pv.querySelector('img');
+        if (!img) { img = document.createElement('img'); img.style.cssText='position:absolute;inset:0;width:100%;height:100%;object-fit:cover;border-radius:6px'; pv.appendChild(img); }
+        img.src = e.target.result;
+        const ph = pv.querySelector('.photo-preview-placeholder');
+        if (ph) ph.style.display = 'none';
+    };
+    reader.readAsDataURL(input.files[0]);
 }
 
-/* Submit form tambah barang via fetch (tanpa redirect) */
-if (document.getElementById('formTambah')) {
-    document.getElementById('formTambah').addEventListener('submit', function(e) {
-        e.preventDefault();
+function saveAddBarang() {
+    const stokJson = document.getElementById('addStokJson').value;
+    const stokObj  = JSON.parse(stokJson||'{}');
+    if (!Object.keys(stokObj).length) { showToast('⚠️ Centang dan isi minimal satu ukuran'); return; }
 
-        // Validasi: minimal ada satu ukuran dengan stok > 0
-        const stokJson = document.getElementById('tambahStokJson').value;
-        const stokObj  = JSON.parse(stokJson || '{}');
-        if (!Object.keys(stokObj).length) {
-            showToast('⚠️ Centang dan isi minimal satu ukuran');
-            return;
+    const nama  = document.getElementById('addNama').value.trim();
+    const harga = document.getElementById('addHarga').value;
+    if (!nama)  { showToast('⚠️ Nama barang wajib diisi'); return; }
+    if (!harga) { showToast('⚠️ Harga sewa wajib diisi'); return; }
+
+    const fd = new FormData(document.getElementById('addForm'));
+    fd.set('stok', stokJson);
+    fd.set('ukuran', document.getElementById('addUkuranLabel').value);
+
+    fetch('{{ route("barang.store") }}', {
+        method: 'POST',
+        body: fd,
+        headers: { 'X-Requested-With': 'XMLHttpRequest' }
+    })
+    .then(r => r.json())
+    .then(data => {
+        if (data.success) {
+            showToast('✅ Produk baru berhasil ditambahkan');
+            closeAddModal();
+            setTimeout(() => location.reload(), 1400);
+        } else {
+            showToast('❌ ' + (data.message || 'Gagal menyimpan'));
         }
-
-        const formData = new FormData(this);
-        // Pastikan stok JSON dikirim dengan benar
-        formData.set('stok', stokJson);
-        formData.set('ukuran', document.getElementById('tambahUkuranLabel').value);
-
-        fetch('{{ route("barang.store") }}', {
-            method: 'POST',
-            body: formData,
-            headers: { 'X-Requested-With': 'XMLHttpRequest' }
-        })
-        .then(r => r.json())
-        .then(data => {
-            if (data.success) {
-                showToast('✅ Barang baru berhasil ditambahkan');
-                resetFormTambah();
-                /*
-                 * Reload halaman setelah 1.5 detik agar data INV_BARANG
-                 * ter-refresh dari server. Alternatif yang lebih elegan
-                 * adalah menambahkan barang baru ke array INV_BARANG secara
-                 * langsung, tapi kita butuh id_barang dari server untuk itu.
-                 */
-                setTimeout(() => location.reload(), 1500);
-            } else {
-                showToast('❌ ' + (data.message || 'Gagal menyimpan'));
-            }
-        })
-        .catch(() => showToast('❌ Terjadi kesalahan jaringan'));
-    });
+    })
+    .catch(() => showToast('❌ Terjadi kesalahan jaringan'));
 }
 
-/* ═══════════════════════════════════════════
-   HELPERS TAMPILAN
-═══════════════════════════════════════════ */
-
-function showPanelEmpty() {
-    document.getElementById('panelEmpty').style.display  = 'flex';
-    document.getElementById('panelActive').style.display = 'none';
-}
-
-function showPanelActive() {
-    document.getElementById('panelEmpty').style.display  = 'none';
-    document.getElementById('panelActive').style.display = 'flex';
-}
-
-/* Toast notifikasi singkat yang auto-dismiss setelah 2.5 detik */
+/* ═══════════════════════════════════════
+   TOAST
+═══════════════════════════════════════ */
 function showToast(msg) {
-    const toast = document.getElementById('invToast');
-    toast.textContent  = msg;
-    toast.style.display   = 'flex';
-    toast.style.opacity   = '1';
-    clearTimeout(toast._timer);
-    toast._timer = setTimeout(() => {
-        toast.style.opacity = '0';
-        setTimeout(() => { toast.style.display = 'none'; }, 300);
-    }, 2500);
+    const t = document.getElementById('invToast');
+    t.textContent = msg;
+    t.classList.add('show');
+    clearTimeout(t._t);
+    t._t = setTimeout(() => t.classList.remove('show'), 2600);
 }
 
-/* Format angka ke Rupiah tanpa desimal */
-const fmtRp = n => parseInt(n).toLocaleString('id-ID');
+/* ═══════════════════════════════════════
+   ESC CLOSE
+═══════════════════════════════════════ */
+document.addEventListener('keydown', e => {
+    if (e.key !== 'Escape') return;
+    closeEditModal();
+    if (typeof closeAddModal === 'function') closeAddModal();
+});
 
-/* ═══════════════════════════════════════════
-   INISIALISASI
-═══════════════════════════════════════════ */
+/* ═══════════════════════════════════════
+   INIT
+═══════════════════════════════════════ */
 renderChips();
 renderGrid();
 </script>

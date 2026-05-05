@@ -219,7 +219,7 @@ body.sidebar-collapsed .s-user[data-label]:hover::after {
 }
 
 .s-logo {
-  padding: 22px 18px 18px;
+  padding: 15px 18px 18px;
   border-bottom: 1px solid rgba(255,255,255,.06);
   display: flex;
   align-items: center;
@@ -922,6 +922,7 @@ body.mob-sidebar-open .sidebar-backdrop {
     $userRole      = session('user')['role'] ?? null;
     $userName      = session('user')['nama_lengkap'] ?? 'User';
     $userInitial   = strtoupper(substr($userName, 0, 1));
+    $userFoto      = session('user')['foto'] ?? null;
     $totalBarang   = \App\Models\Barang::count();
     $trxAktifCount = \App\Models\Transaksi::where('status_transaksi', 'Diproses')->count();
     $trxTelat      = \App\Models\Transaksi::where('status_transaksi', 'Diproses')
@@ -935,7 +936,9 @@ body.mob-sidebar-open .sidebar-backdrop {
 <aside class="sidebar" id="appSidebar">
 
     <div class="s-logo">
-        <div class="logo-icon">N</div>
+        <div class="logo-icon">
+          <img src="{{ asset('uploads/toko/Gallery.png') }}" alt="Logo NM Gallery" style="width:55px; height:55px; object-fit:cover;">
+        </div>
         <div class="logo-words">
             <div class="logo-name" >NM Gallery</div>
             <div class="logo-sub">SIM Baju Bodo</div>
@@ -1030,7 +1033,14 @@ body.mob-sidebar-open .sidebar-backdrop {
         {{-- Tombol profil — trigger dropdown, bukan langsung logout --}}
         <div class="s-user" id="profileTrigger" onclick="toggleProfileDropdown()"
              role="button" aria-haspopup="true" aria-expanded="false" data-label="{{ $userName }}">
-            <div class="s-ava">{{ $userInitial }}</div>
+            <div class="s-ava" style="{{ $userFoto ? 'padding:0;overflow:hidden;' : '' }}">
+                @if($userFoto)
+                    <img src="/{{ $userFoto }}" alt="{{ $userName }}"
+                        style="width:100%;height:100%;object-fit:cover;border-radius:50%;">
+                @else
+                    {{ $userInitial }}
+                @endif
+            </div>
             <div style="min-width:0">
                 <div class="s-uname">{{ $userName }}</div>
                 <div class="s-urole">{{ $userRole ?? '—' }}</div>
@@ -1066,10 +1076,9 @@ body.mob-sidebar-open .sidebar-backdrop {
         @if(request()->routeIs('transaksi.*'))
         {{-- ── POS: Logo (reuse elemen sidebar) ── --}}
         <div style="display:flex;align-items:center;gap:10px">
-            <div class="logo-icon" style="width:30px;height:30px;font-size:14px;border-radius:6px;flex-shrink:0">N</div>
             <div class="logo-words">
                 <div class="logo-name" style="color:var(--black);font-size:13px">NM Gallery</div>
-                <div class="logo-sub" style="color:var(--gray-400)">Point of Sale</div>
+                <div class="logo-sub" style="color:var(--gray-400)">SIM BAJU BODO</div>
             </div>
         </div>
         {{-- ── POS: Jam ── --}}

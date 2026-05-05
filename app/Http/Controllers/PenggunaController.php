@@ -69,9 +69,12 @@ class PenggunaController extends Controller
                 'foto'         => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
             ]);
 
+            
             $fotoPath = $pengguna->foto;
 
+            // Kasus 1: User mengupload foto baru
             if ($request->hasFile('foto')) {
+                // Hapus file lama dari disk agar tidak menumpuk di server
                 if ($pengguna->foto && file_exists(public_path($pengguna->foto))) {
                     unlink(public_path($pengguna->foto));
                 }
@@ -81,10 +84,12 @@ class PenggunaController extends Controller
                 $fotoPath = 'uploads/pengguna/' . $filename;
             }
 
+            // Kasus 2: User menekan tombol "Hapus Foto" (tanpa upload foto baru)
             if ($request->hapus_foto == '1') {
                 if ($pengguna->foto && file_exists(public_path($pengguna->foto))) {
                     unlink(public_path($pengguna->foto));
                 }
+                // Set null supaya kolom foto di database juga dikosongkan
                 $fotoPath = null;
             }
 
@@ -95,11 +100,28 @@ class PenggunaController extends Controller
                 'role'         => $request->role,
                 'foto'         => $fotoPath,
             ];
+
+            // Password hanya diupdate jika user mengisinya (tidak wajib saat edit)
             if ($request->filled('password')) {
                 $data['password'] = Hash::make($request->password);
             }
 
             $pengguna->update($data);
+
+            if (session('user')['id_user'] == $id) {
+
+                $sessionUser = session('user');
+
+                $sessionUser['nama_lengkap'] = $pengguna->nama_lengkap;
+                $sessionUser['username']     = $pengguna->username;
+                $sessionUser['email']        = $pengguna->email;
+                $sessionUser['role']         = $pengguna->role;
+                $sessionUser['foto'] = $fotoPath;
+
+                // Tulis kembali session yang sudah diperbarui
+                session(['user' => $sessionUser]);
+            }
+
             return response()->json(['success' => true, 'data' => $pengguna->fresh()]);
         } catch (\Exception $e) {
             return response()->json(['success' => false, 'message' => $e->getMessage()], 422);
