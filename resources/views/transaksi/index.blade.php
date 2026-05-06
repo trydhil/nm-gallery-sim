@@ -777,15 +777,33 @@ function posRenderGrid(){
     const isRented=!!b.active_rental;
     const stokTot=Object.values(b.stok).reduce((a,v)=>a+v,0);
     const hasFoto=b.foto&&b.foto!=='null';
+    const badgeLabel = b.status === 'Laundry' || b.status === 'Rusak'
+      ? b.status.toUpperCase()
+      : isRented
+        ? 'DISEWA'
+        : b.available
+          ? 'TERSEDIA'
+          : 'DISEWA';
+    const badgeClass = b.status === 'Laundry'
+      ? 'out'
+      : b.status === 'Rusak'
+        ? 'out'
+        : isRented
+          ? 'out'
+          : 'ok';
     return `<div class="pos-card${isOut?' disewa':''}" onclick="${isOut?'':'openSizePicker('+b.id+')'}">
       <div class="pos-card-img">
         ${hasFoto?`<img src="/${b.foto}" onerror="this.style.display='none'">`:''}
         <span style="font-size:32px${hasFoto?';display:none':''}"><i class='bi bi-bag-heart' style='color:var(--pos-gold-dk);opacity:.4'></i></span>
-        <div class="pos-status ${isOut?'out':'ok'}">${isOut?'DISEWA':'TERSEDIA'}</div>
+        <div class="pos-status ${badgeClass}">${badgeLabel}</div>
       </div>
       <div class="pos-card-body">
         <div class="pos-card-name">${b.nama}</div>
-        <div class="pos-card-meta">${isOut ? 'Stok habis' : 'Stok: '+stokTot+' pcs' + (isRented ? ' · Ada yang disewa' : '')}</div>
+        <div class="pos-card-meta">${b.status === 'Laundry' || b.status === 'Rusak'
+          ? b.status
+          : isOut
+            ? 'Stok habis'
+            : 'Stok: '+stokTot+' pcs' + (isRented ? ' · Ada yang disewa' : '')}</div>
         <div class="pos-card-price">${FMT(b.harga)}<small>/hari</small></div>
       </div>
     </div>`;

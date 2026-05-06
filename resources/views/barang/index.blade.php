@@ -945,6 +945,13 @@ function renderGrid() {
         const stok = totalStok(b);
         const isRented = !!b.active_rental;
         const isAvailable = !!b.available;
+        const badgeLabel = b.status === 'Laundry' || b.status === 'Rusak'
+            ? b.status.toUpperCase()
+            : isRented
+                ? 'DISEWA'
+                : isAvailable
+                    ? `Stok: ${stok}`
+                    : 'Stok habis';
         return `<div class="pcard">
             <div class="pcard-status-stripe ${isRented ? 'stripe-disewa' : stripeClass(b.status)}"></div>
 
@@ -953,7 +960,7 @@ function renderGrid() {
                     ? `<img src="/${b.foto}" alt="${b.nama}" onerror="this.style.display='none'">`
                     : `<div class="pcard-img-placeholder"><i class="bi bi-bag-heart"></i></div>`
                 }
-                <div class="pcard-stok-badge${stok===0?' stok-0':''}">${isAvailable ? 'Stok: ' + stok : 'Stok habis'}</div>
+                <div class="pcard-stok-badge${stok===0 && badgeLabel === 'Stok habis' ? ' stok-0' : ''}">${badgeLabel}</div>
 
                 <!-- Hover actions -->
                 <div class="pcard-actions">
@@ -1181,6 +1188,7 @@ function saveEditBarang() {
             /* update in-memory */
             const idx = INV_BARANG.findIndex(x => x.id === editingId);
             if (idx > -1) {
+                const oldStatus = INV_BARANG[idx].status;
                 INV_BARANG[idx].nama   = document.getElementById('editNama').value;
                 INV_BARANG[idx].harga  = parseFloat(document.getElementById('editHarga').value)||0;
                 INV_BARANG[idx].status = document.getElementById('editStatus').value;
@@ -1189,7 +1197,12 @@ function saveEditBarang() {
                 INV_BARANG[idx].total_stok = Object.values(stokParsed).reduce((a,v)=>a+v,0);
                 INV_BARANG[idx].ukuran = document.getElementById('editUkuranLabel').value;
                 INV_BARANG[idx].available = INV_BARANG[idx].total_stok > 0 && INV_BARANG[idx].status === 'Tersedia';
+
+                if ((INV_BARANG[idx].status === 'Laundry' || INV_BARANG[idx].status === 'Rusak') && INV_BARANG[idx].status !== oldStatus) {
+                    currentFilter = INV_BARANG[idx].status;
+                }
             }
+            renderChips();
             renderGrid();
             closeEditModal();
             showToast('✅ Perubahan berhasil disimpan');

@@ -139,6 +139,7 @@ class BarangController extends Controller
                 'ukuran'      => $request->ukuran,
                 'harga_sewa'  => $request->harga_sewa,
                 'stok'        => $request->stok,
+                'status_barang' => $request->status_barang,
                 'foto'        => $fotoPath,
             ]);
 
