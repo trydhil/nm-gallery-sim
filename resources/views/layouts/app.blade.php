@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="csrf-token" content="{{ csrf_token() }}">
 <title>NM Gallery SIM — @yield('title', 'Laporan')</title>
+<link rel='stylesheet' href='https://cdn-uicons.flaticon.com/2.4.2/uicons-thin-rounded/css/uicons-thin-rounded.css'>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,400&family=Instrument+Serif:ital@0;1&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
@@ -542,11 +543,6 @@ body.sidebar-collapsed .sidebar-toggle-btn .ico-close { display: flex; }
 .tb-search input::placeholder { color: var(--gray-400); }
 .tb-right { margin-left: auto; display: flex; align-items: center; gap: 8px; }
 
-/*
- * Tombol panduan "?" — ikon bundar minimalis di topbar kanan.
- * Warnanya netral (outline) agar tidak bersaing dengan CTA utama,
- * tapi cukup menonjol sebagai titik bantuan.
- */
 .help-btn {
   width: 32px; height: 32px;
   border-radius: 50%;
@@ -928,9 +924,8 @@ body.mob-sidebar-open .sidebar-backdrop {
   .sidebar-backdrop { display: none !important; }
   body.mob-sidebar-open .sidebar { transform: none !important; }
 }
-
-
 </style>
+
 </head>
 <body>
 
@@ -1127,11 +1122,7 @@ body.mob-sidebar-open .sidebar-backdrop {
             @endif
             @endif
 
-            <a href="/panduan"
-              target="_blank"
-              rel="noopener noreferrer"
-              class="help-btn"
-              title="Buka Buku Panduan">
+            <a href="{{ asset('panduan/buku_panduan.pdf') }}" target="_blank" rel="noopener noreferrer" class="help-btn" title="Buka Buku Panduan">
                 ?
             </a>
 

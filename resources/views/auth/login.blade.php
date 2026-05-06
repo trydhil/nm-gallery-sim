@@ -260,11 +260,8 @@ input,button{font-family:var(--ff)}
 
         <div class="visual-overlay">
             <div class="overlay-brand">NM Gallery</div>
-            <div class="overlay-tagline">Baju Bodo Collection &middot; Makassar</div>
-            <p class="overlay-desc">
-                Sistem manajemen terpadu untuk penyewaan pakaian tradisional Baju Bodo.
-                Kelola inventaris, transaksi, dan pelanggan dalam satu platform elegan.
-            </p>
+            <div class="overlay-tagline">Baju Bodo Collection &middot; Bulukumba</div>
+            
         </div>
     </div>
 

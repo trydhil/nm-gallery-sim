@@ -46,94 +46,6 @@
             </div>
         </div>
 
-        {{-- Form Tarif --}}
-        <form id="tarifForm">
-        @csrf
-
-        {{-- Grup: Tarif Sewa --}}
-        <div class="card gold-top" style="margin-bottom:0">
-            <div class="card-head">
-                <div>
-                    <div class="card-title"><i class="bi bi-cash"></i> Tarif Sewa</div>
-                    <div class="card-sub">Harga dasar yang ditawarkan kepada pelanggan</div>
-                </div>
-            </div>
-            <div style="padding:20px 22px;display:flex;flex-direction:column;gap:16px">
-
-                {{-- Tarif Dasar --}}
-                <div style="display:flex;align-items:center;justify-content:space-between;
-                    padding:16px 18px;background:var(--gray-50);border-radius:var(--r2);
-                    border:1.5px solid var(--gray-200);transition:border-color .2s"
-                    id="wrap_tarif_dasar">
-                    <div>
-                        <div style="font-size:12.5px;font-weight:700;color:var(--black);margin-bottom:2px">
-                            Tarif Dasar Baju Saja
-                        </div>
-                        <div style="font-size:11px;color:var(--gray-400)">
-                            Harga sewa per hari untuk satu set baju bodo tanpa aksesori
-                        </div>
-                    </div>
-                    <div style="display:flex;align-items:center;gap:8px;flex-shrink:0">
-                        <span style="font-size:12px;color:var(--gray-400);font-weight:500">Rp</span>
-                        <input type="number" name="tarif_dasar" id="tarif_dasar"
-                            value="{{ $tarif['tarif_dasar'] ?? 150000 }}"
-                            class="tarif-input"
-                            placeholder="150000"
-                            min="0" step="1000">
-                        <span style="font-size:11px;color:var(--gray-400)">/hari</span>
-                    </div>
-                </div>
-
-                {{-- Tarif Full Set --}}
-                <div style="display:flex;align-items:center;justify-content:space-between;
-                    padding:16px 18px;background:var(--gray-50);border-radius:var(--r2);
-                    border:1.5px solid var(--gray-200);transition:border-color .2s"
-                    id="wrap_tarif_fullset">
-                    <div>
-                        <div style="font-size:12.5px;font-weight:700;color:var(--black);margin-bottom:2px">
-                            Tarif Full Set Pengantin
-                        </div>
-                        <div style="font-size:11px;color:var(--gray-400)">
-                            Harga sewa untuk paket lengkap termasuk aksesori pengantin
-                        </div>
-                    </div>
-                    <div style="display:flex;align-items:center;gap:8px;flex-shrink:0">
-                        <span style="font-size:12px;color:var(--gray-400);font-weight:500">Rp</span>
-                        <input type="number" name="tarif_fullset" id="tarif_fullset"
-                            value="{{ $tarif['tarif_fullset'] ?? 650000 }}"
-                            class="tarif-input"
-                            placeholder="650000"
-                            min="0" step="1000">
-                        <span style="font-size:11px;color:var(--gray-400)">/set</span>
-                    </div>
-                </div>
-
-                {{-- Jaminan --}}
-                <div style="display:flex;align-items:center;justify-content:space-between;
-                    padding:16px 18px;background:var(--gray-50);border-radius:var(--r2);
-                    border:1.5px solid var(--gray-200);transition:border-color .2s"
-                    id="wrap_jaminan">
-                    <div>
-                        <div style="font-size:12.5px;font-weight:700;color:var(--black);margin-bottom:2px">
-                            Uang Jaminan
-                        </div>
-                        <div style="font-size:11px;color:var(--gray-400)">
-                            Jaminan yang ditahan selama masa sewa, dikembalikan saat pengembalian
-                        </div>
-                    </div>
-                    <div style="display:flex;align-items:center;gap:8px;flex-shrink:0">
-                        <span style="font-size:12px;color:var(--gray-400);font-weight:500">Rp</span>
-                        <input type="number" name="jaminan" id="jaminan"
-                            value="{{ $tarif['jaminan'] ?? 200000 }}"
-                            class="tarif-input"
-                            placeholder="200000"
-                            min="0" step="1000">
-                    </div>
-                </div>
-
-            </div>
-        </div>
-
         {{-- Grup: Denda Keterlambatan --}}
         <div class="card" style="border-top:2px solid #e03434;margin-top:16px">
             <div class="card-head" style="background:rgba(220,52,52,.03)">
@@ -300,32 +212,6 @@
                         <i class="bi bi-box-arrow-right"></i> Logout Sekarang
                     </button>
                 </form>
-            </div>
-        </div>
-
-        {{-- Kartu info singkat versi tarif aktif --}}
-        <div class="card" style="border-top:2px solid var(--gold)">
-            <div class="card-head">
-                <div class="card-title"><i class="bi bi-list-check"></i> Ringkasan Tarif Aktif</div>
-            </div>
-            <div style="padding:14px 18px;display:flex;flex-direction:column;gap:8px">
-                @foreach([
-                    ['Tarif Dasar', $tarif['tarif_dasar'] ?? 150000, '/hari', 'gold'],
-                    ['Full Set', $tarif['tarif_fullset'] ?? 650000, '/set', 'gold'],
-                    ['Jaminan', $tarif['jaminan'] ?? 200000, '', 'gray'],
-                    ['Denda Telat', $tarif['denda'] ?? 50000, '/hari', 'red'],
-                ] as [$label, $nominal, $suffix, $color])
-                <div style="display:flex;justify-content:space-between;align-items:center;
-                    padding:7px 10px;background:var(--gray-50);border-radius:var(--r);
-                    border:1px solid var(--gray-200)">
-                    <span style="font-size:12px;color:var(--gray-600)">{{ $label }}</span>
-                    <span id="summary_{{ Str::slug($label) }}"
-                        style="font-family:var(--ff-mono);font-size:12px;font-weight:700;
-                        color:{{ $color === 'red' ? '#c0392b' : 'var(--gold-dk)' }}">
-                        Rp {{ number_format($nominal, 0, ',', '.') }}{{ $suffix }}
-                    </span>
-                </div>
-                @endforeach
             </div>
         </div>
 

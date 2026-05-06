@@ -368,7 +368,7 @@
     <i class="bi bi-receipt"></i> Transaksi Baru
   </div>
   <div class="pos-tab" data-tab="kembali">
-    ↩️ Pengembalian
+    <i class="bi bi-clock-history"></i> Pengembalian
     @if(isset($transaksiAktif) && $transaksiAktif->count() > 0)
       <div class="pos-tab-badge {{ $jmlTerlambat > 0 ? 'red' : '' }}">
         {{ $transaksiAktif->count() }}
