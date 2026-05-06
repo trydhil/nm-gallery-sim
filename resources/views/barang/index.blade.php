@@ -1221,29 +1221,36 @@ function deleteBarangFromModal() {
 }
 
 function deleteBarang(id, nama, fromModal = false) {
-    if (!confirm(`Hapus barang "${nama}"?\n\nTindakan ini tidak dapat dibatalkan.`)) return;
+    swalConfirm(`Hapus barang "${nama}"?`, {
+        title: 'Hapus barang',
+        confirmButtonText: 'Hapus',
+        confirmButtonColor: '#c0392b',
+    }).then(result => {
+        if (!result.isConfirmed) return;
 
-    fetch(`/barang/${id}`, {
-        method: 'DELETE',
-        headers: {
-            'X-CSRF-TOKEN': CSRF_TOKEN,
-            'X-Requested-With': 'XMLHttpRequest',
-            'Accept': 'application/json',
-        }
-    })
-    .then(r => r.json())
-    .then(data => {
-        if (data.success) {
-            const idx = INV_BARANG.findIndex(x => x.id === id);
-            if (idx > -1) INV_BARANG.splice(idx, 1);
-            if (fromModal) closeEditModal();
-            renderGrid();
-            showToast('🗑️ Barang berhasil dihapus');
-        } else {
-            showToast('❌ ' + (data.message || 'Gagal menghapus'));
-        }
-    })
-    .catch(() => showToast('❌ Terjadi kesalahan jaringan'));
+        fetch(`/barang/${id}`, {
+            method: 'DELETE',
+            headers: {
+                'X-CSRF-TOKEN': CSRF_TOKEN,
+                'X-Requested-With': 'XMLHttpRequest',
+                'Accept': 'application/json',
+            }
+        })
+        .then(r => r.json())
+        .then(data => {
+            if (data.success) {
+                const idx = INV_BARANG.findIndex(x => x.id === id);
+                if (idx > -1) INV_BARANG.splice(idx, 1);
+                if (fromModal) closeEditModal();
+                renderChips();
+                renderGrid();
+                showToast('🗑️ Barang berhasil dihapus');
+            } else {
+                swalAlert(data.message || 'Gagal menghapus', 'error', 'Gagal');
+            }
+        })
+        .catch(() => swalAlert('Terjadi kesalahan jaringan', 'error', 'Gagal menghapus'));
+    });
 }
 
 /* ═══════════════════════════════════════
@@ -1333,11 +1340,7 @@ function saveAddBarang() {
    TOAST
 ═══════════════════════════════════════ */
 function showToast(msg) {
-    const t = document.getElementById('invToast');
-    t.textContent = msg;
-    t.classList.add('show');
-    clearTimeout(t._t);
-    t._t = setTimeout(() => t.classList.remove('show'), 2600);
+    swalToast(msg);
 }
 
 /* ═══════════════════════════════════════

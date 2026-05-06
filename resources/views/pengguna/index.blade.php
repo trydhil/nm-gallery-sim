@@ -433,39 +433,37 @@ document.getElementById('userForm').addEventListener('submit', function(e) {
 
 // ── Hapus user ──
 function hapusUser(id, nama) {
-    if (!confirm('Hapus akun "' + nama + '"?\n\nTindakan ini tidak dapat dibatalkan.')) return;
+    swalConfirm('Hapus akun "' + nama + '"?', {
+        title: 'Hapus akun',
+        confirmButtonText: 'Hapus',
+        confirmButtonColor: '#c0392b',
+    }).then(result => {
+        if (!result.isConfirmed) return;
 
-    fetch('/pengguna/' + id, {
-        method: 'DELETE',
-        headers: {
-            'X-CSRF-TOKEN'    : CSRF,
-            'X-Requested-With': 'XMLHttpRequest',
-            'Accept'          : 'application/json'
-        }
-    })
-    .then(r => r.json())
-    .then(data => {
-        if (data.success) {
-            showToast('🗑️ User berhasil dihapus');
-            setTimeout(() => location.reload(), 1000);
-        } else {
-            showToast('❌ ' + (data.message || 'Gagal menghapus'));
-        }
-    })
-    .catch(() => showToast('❌ Terjadi kesalahan jaringan'));
+        fetch('/pengguna/' + id, {
+            method: 'DELETE',
+            headers: {
+                'X-CSRF-TOKEN'    : CSRF,
+                'X-Requested-With': 'XMLHttpRequest',
+                'Accept'          : 'application/json'
+            }
+        })
+        .then(r => r.json())
+        .then(data => {
+            if (data.success) {
+                showToast('🗑️ User berhasil dihapus');
+                setTimeout(() => location.reload(), 1000);
+            } else {
+                swalAlert(data.message || 'Gagal menghapus', 'error', 'Gagal');
+            }
+        })
+        .catch(() => swalAlert('Terjadi kesalahan jaringan', 'error', 'Gagal menghapus'));
+    });
 }
 
 // ── Toast notifikasi singkat ──
 function showToast(msg) {
-    const t = document.getElementById('userToast');
-    t.textContent = msg;
-    t.style.display = 'block';
-    t.style.opacity = '1';
-    clearTimeout(t._timer);
-    t._timer = setTimeout(() => {
-        t.style.opacity = '0';
-        setTimeout(() => { t.style.display = 'none'; }, 300);
-    }, 2500);
+    swalToast(msg);
 }
 
 // Tutup modal saat klik di luar

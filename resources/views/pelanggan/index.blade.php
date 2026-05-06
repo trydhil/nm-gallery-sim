@@ -364,14 +364,14 @@ function savePelangganBaru() {
     let nama = document.getElementById('new_nama_pelanggan').value.trim();
     let telp = document.getElementById('new_no_telp').value.trim();
     let alamat = document.getElementById('new_alamat').value.trim();
-    if (!nama) { alert('Nama harus diisi!'); return; }
-    if (!telp) { alert('Telepon harus diisi!'); return; }
+    if (!nama) { swalAlert('Nama harus diisi!', 'warning', 'Peringatan'); return; }
+    if (!telp) { swalAlert('Telepon harus diisi!', 'warning', 'Peringatan'); return; }
     let fd = new FormData();
     fd.append('nama_pelanggan', nama); fd.append('no_telp', telp);
     fd.append('alamat', alamat); fd.append('_token', '{{ csrf_token() }}');
     fetch('{{ route("pelanggan.store") }}', { method:'POST', body:fd })
-        .then(r => r.json()).then(d => { if (d.success) location.reload(); else alert(d.message); })
-        .catch(err => alert('Error: ' + err));
+        .then(r => r.json()).then(d => { if (d.success) location.reload(); else swalAlert(d.message || 'Gagal menyimpan', 'error', 'Gagal'); })
+        .catch(err => swalAlert('Error: ' + err, 'error', 'Gagal'));
 }
 
 /* ── Edit ── */
@@ -387,15 +387,15 @@ function updatePelanggan() {
     let nama = document.getElementById('edit_nama_pelanggan').value.trim();
     let telp = document.getElementById('edit_no_telp').value.trim();
     let alamat = document.getElementById('edit_alamat').value.trim();
-    if (!nama) { alert('Nama harus diisi!'); return; }
-    if (!telp) { alert('Telepon harus diisi!'); return; }
+    if (!nama) { swalAlert('Nama harus diisi!', 'warning', 'Peringatan'); return; }
+    if (!telp) { swalAlert('Telepon harus diisi!', 'warning', 'Peringatan'); return; }
     let fd = new FormData();
     fd.append('nama_pelanggan', nama); fd.append('no_telp', telp);
     fd.append('alamat', alamat); fd.append('_method','PUT');
     fd.append('_token', '{{ csrf_token() }}');
     fetch('/pelanggan/' + currentEditId, { method:'POST', body:fd })
-        .then(r => r.json()).then(d => { if (d.success) location.reload(); else alert(d.message); })
-        .catch(err => alert('Error: ' + err));
+        .then(r => r.json()).then(d => { if (d.success) location.reload(); else swalAlert(d.message || 'Gagal menyimpan', 'error', 'Gagal'); })
+        .catch(err => swalAlert('Error: ' + err, 'error', 'Gagal'));
 }
 
 document.addEventListener('keydown', e => {

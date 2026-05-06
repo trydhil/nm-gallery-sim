@@ -30,9 +30,13 @@
 </div>
 
 @if(session('success'))
-<div style="background:rgba(45,166,110,.1);border:1px solid rgba(45,166,110,.3);border-radius:10px;padding:12px 16px;margin-bottom:16px;color:#1a8050;font-weight:600;font-size:13px">
-    ✅ {{ session('success') }}
-</div>
+@push('scripts')
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    swalToast(@json('✅ ' . session('success')), 'success');
+});
+</script>
+@endpush
 @endif
 
 {{--
@@ -208,8 +212,8 @@
                     </div>
                 </div>
 
-                <form action="{{ route('transaksi.update', $transaksi->id_transaksi) }}" method="POST"
-                      onsubmit="return confirm('Konfirmasi pengembalian barang?\nTotal tagihan: Rp {{ number_format($totalBayarKembali, 0, '.', '.') }}\n\nLanjutkan?')">
+                    <form action="{{ route('transaksi.update', $transaksi->id_transaksi) }}" method="POST"
+                        onsubmit="return confirmPengembalian(this, event)">
                     @csrf
                     @method('PUT')
                     <div style="display:flex;gap:10px;justify-content:flex-end;flex-wrap:wrap">
@@ -229,6 +233,24 @@
         <div style="background:white;border:1px solid var(--gray-200);border-radius:12px;padding:16px 20px;display:flex;align-items:center;justify-content:space-between;gap:12px">
             <div>
                 <div style="font-size:13px;font-weight:700;color:#1a8050">✅ Transaksi Selesai</div>
+            @push('scripts')
+            <script>
+            function confirmPengembalian(form, event) {
+                event.preventDefault();
+                swalConfirm('Total tagihan: Rp {{ number_format($totalBayarKembali, 0, '.', '.') }}', {
+                    title: 'Konfirmasi pengembalian barang',
+                    confirmButtonText: 'Lanjutkan',
+                    confirmButtonColor: '#1a8050',
+                }).then(result => {
+                    if (result.isConfirmed) {
+                        form.submit();
+                    }
+                });
+                return false;
+            }
+            </script>
+            @endpush
+
                 <div style="font-size:11px;color:#888;margin-top:2px">
                     Dikembalikan: {{ $transaksi->tgl_kembali ? \Carbon\Carbon::parse($transaksi->tgl_kembali)->format('d M Y') : '-' }}
                     @if($transaksi->total_denda > 0)

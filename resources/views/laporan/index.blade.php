@@ -249,9 +249,9 @@ function applyFilter() {
     var start    = document.getElementById('start_date').value;
     var end      = document.getElementById('end_date').value;
 
-    if (!start || !end) { alert('Silakan pilih tanggal terlebih dahulu!'); return; }
+    if (!start || !end) { swalAlert('Silakan pilih tanggal terlebih dahulu!', 'warning', 'Peringatan'); return; }
     if (new Date(start) > new Date(end)) {
-        alert('Tanggal mulai tidak boleh lebih besar dari tanggal akhir!'); return;
+        swalAlert('Tanggal mulai tidak boleh lebih besar dari tanggal akhir!', 'warning', 'Peringatan'); return;
     }
 
     window.location.href = '{{ route("laporan") }}?filter=' + filter

@@ -1217,9 +1217,7 @@ function posReset(silent){
   posRecalc();
 }
 function showToast(msg){
-  const t=document.getElementById('posToast');
-  t.textContent=msg;t.classList.add('show');
-  clearTimeout(t._t);t._t=setTimeout(()=>t.classList.remove('show'),2500);
+  swalToast(msg);
 }
 
 // ── INIT ──

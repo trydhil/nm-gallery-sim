@@ -226,7 +226,7 @@ input,button{font-family:var(--ff)}
     <!-- LEFT — Visual Panel -->
     <div class="visual-panel">
         <img
-            src="https://images.unsplash.com/photo-1558769132-cb1aea458c5e?w=1200&q=80"
+            src="{{ asset('image/login-visual.jpg') }}"
             alt="NM Gallery — Baju Bodo Collection"
             class="visual-bg"
             onerror="this.style.display='none';this.parentElement.style.background='linear-gradient(135deg,#0a0a0a 0%,#1a1a1a 50%,#2e1e10 100%)';"

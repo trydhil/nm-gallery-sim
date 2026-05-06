@@ -6,6 +6,7 @@
 <meta name="csrf-token" content="{{ csrf_token() }}">
 <title>NM Gallery SIM — @yield('title', 'Laporan')</title>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,400&family=Instrument+Serif:ital@0;1&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
 
@@ -1251,10 +1252,23 @@ document.addEventListener('keydown', e => {
 
 function confirmLogout() {
     closeProfileDropdown();
-    // Dialog konfirmasi sebelum logout agar tidak terjadi "accidental logout"
-    if (confirm('Yakin ingin keluar dari sistem NM Gallery?')) {
-        document.getElementById('logoutForm').submit();
+  Swal.fire({
+    title: 'Keluar dari sistem?',
+    text: 'Yakin ingin keluar dari sistem NM Gallery?',
+    icon: 'question',
+    showCancelButton: true,
+    confirmButtonText: 'Logout',
+    cancelButtonText: 'Batal',
+    confirmButtonColor: '#b71c1c',
+    cancelButtonColor: '#6b7280',
+    reverseButtons: true,
+    focusCancel: true,
+  }).then(result => {
+    if (result.isConfirmed) {
+      document.getElementById('logoutForm').submit();
     }
+  });
+  return false;
 }
 
 /* ════════════════════════════════════════════════════
@@ -1416,6 +1430,55 @@ function closeAccessModal() {
 document.getElementById('accessModal').addEventListener('click', function(e) {
     if (e.target === this) closeAccessModal();
 });
+</script>
+
+<script>
+window.swalAlert = function (message, icon = 'info', title = '') {
+  return Swal.fire({
+    title: title || message,
+    text: title ? message : '',
+    icon,
+    confirmButtonText: 'OK',
+    confirmButtonColor: '#C9A84C',
+    customClass: { popup: 'swal2-nm' },
+  });
+};
+
+window.swalToast = function (message, icon) {
+  const inferredIcon = icon || (/^✅/.test(message) ? 'success'
+    : /^❌/.test(message) ? 'error'
+    : /^⚠️/.test(message) ? 'warning'
+    : /^🗑️/.test(message) ? 'success'
+    : 'info');
+
+  return Swal.fire({
+    toast: true,
+    position: 'top-end',
+    icon: inferredIcon,
+    title: message,
+    showConfirmButton: false,
+    timer: 2600,
+    timerProgressBar: true,
+    background: '#111111',
+    color: '#ffffff',
+    customClass: { popup: 'swal2-toast-nm' },
+  });
+};
+
+window.swalConfirm = function (message, options = {}) {
+  return Swal.fire({
+    title: options.title || 'Konfirmasi',
+    text: message,
+    icon: options.icon || 'question',
+    showCancelButton: true,
+    confirmButtonText: options.confirmButtonText || 'Lanjutkan',
+    cancelButtonText: options.cancelButtonText || 'Batal',
+    confirmButtonColor: options.confirmButtonColor || '#C9A84C',
+    cancelButtonColor: options.cancelButtonColor || '#6b7280',
+    reverseButtons: true,
+    focusCancel: true,
+  });
+};
 </script>
 
 @stack('scripts')

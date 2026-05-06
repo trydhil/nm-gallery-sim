@@ -288,7 +288,7 @@
                     Data yang belum disimpan akan hilang.
                 </p>
                 <form action="{{ route('logout') }}" method="POST"
-                    onsubmit="return confirm('Yakin ingin keluar dari sistem NM Gallery?')">
+                    onsubmit="return confirmLogout()">
                     @csrf
                     <button type="submit" style="width:100%;padding:11px 16px;
                         background:#b71c1c;border:none;border-radius:var(--r2);
@@ -474,10 +474,10 @@ document.getElementById('tarifForm').addEventListener('submit', function(e) {
                 setTimeout(() => { flash.style.display = 'none'; }, 300);
             }, 2500);
         } else {
-            alert('Gagal menyimpan tarif. Silakan coba lagi.');
+            swalAlert('Gagal menyimpan tarif. Silakan coba lagi.', 'error', 'Gagal');
         }
     })
-    .catch(() => alert('Terjadi kesalahan jaringan.'))
+    .catch(() => swalAlert('Terjadi kesalahan jaringan.', 'error', 'Gagal'))
     .finally(() => {
         btn.disabled    = false;
         btn.innerHTML = '<i class="bi bi-floppy2-fill"></i> Simpan Perubahan Tarif';
