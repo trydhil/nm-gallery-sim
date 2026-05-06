@@ -629,7 +629,15 @@
 }
 @media (max-width: 500px) {
     .inv-grid { grid-template-columns: repeat(2, 1fr); }
-    .inv-stat-chips { display: none; }
+    .inv-stat-chips {
+        width: 100%;
+        overflow-x: auto;
+        padding-bottom: 2px;
+        -webkit-overflow-scrolling: touch;
+    }
+    .inv-stat-chips::-webkit-scrollbar { height: 0; }
+    .inv-stat-chip { font-size: 10.5px; padding: 4px 10px; }
+    .inv-stat-chip .chip-count { display: none; }
 }
 </style>
 
@@ -868,23 +876,29 @@ let currentFilter = 'Semua';
 let editingId     = null;
 
 /* ─── Filter definitions ─── */
-const FILTERS = [
-    { label: 'Semua',    count: {{ $totalBarang }},    cls: '' },
-    { label: 'Tersedia', count: {{ $barangTersedia }}, cls: '' },
-    { label: 'Disewa',   count: {{ $barangDisewa }},   cls: '' },
-    { label: 'Laundry',  count: {{ $barangLaundry }},  cls: '' },
-    { label: 'Rusak',    count: {{ $barangRusak }},     cls: '' },
-];
+const FILTERS = ['Semua', 'Tersedia', 'Disewa', 'Laundry', 'Rusak'];
+
+function getInventoryCounts() {
+    return INV_BARANG.reduce((acc, b) => {
+        acc.Semua += 1;
+        if (b.available) acc.Tersedia += 1;
+        if (b.active_rental) acc.Disewa += 1;
+        if (b.status === 'Laundry') acc.Laundry += 1;
+        if (b.status === 'Rusak') acc.Rusak += 1;
+        return acc;
+    }, { Semua: 0, Tersedia: 0, Disewa: 0, Laundry: 0, Rusak: 0 });
+}
 
 /* ═══════════════════════════════════════
    CHIPS
 ═══════════════════════════════════════ */
 function renderChips() {
-    document.getElementById('invChips').innerHTML = FILTERS.map(f =>
-        `<div class="inv-stat-chip${f.label === currentFilter ? ' active' : ''}"
-              onclick="setFilter('${f.label}')">
-            ${f.label}
-            <span class="chip-count">${f.count}</span>
+    const counts = getInventoryCounts();
+    document.getElementById('invChips').innerHTML = FILTERS.map(label =>
+        `<div class="inv-stat-chip${label === currentFilter ? ' active' : ''}"
+              onclick="setFilter('${label}')">
+            ${label}
+            <span class="chip-count">${counts[label] || 0}</span>
         </div>`
     ).join('');
 }
@@ -905,7 +919,10 @@ function renderGrid() {
     const grid  = document.getElementById('invGrid');
 
     const visible = INV_BARANG.filter(b => {
-        if (currentFilter !== 'Semua' && b.status !== currentFilter) return false;
+        if (currentFilter === 'Tersedia' && !b.available) return false;
+        if (currentFilter === 'Disewa' && !b.active_rental) return false;
+        if (currentFilter === 'Laundry' && b.status !== 'Laundry') return false;
+        if (currentFilter === 'Rusak' && b.status !== 'Rusak') return false;
         if (q && !b.nama.toLowerCase().includes(q) && !(b.ukuran||'').toLowerCase().includes(q)) return false;
         return true;
     });
@@ -926,15 +943,17 @@ function renderGrid() {
 
     grid.innerHTML = visible.map(b => {
         const stok = totalStok(b);
+        const isRented = !!b.active_rental;
+        const isAvailable = !!b.available;
         return `<div class="pcard">
-            <div class="pcard-status-stripe ${stripeClass(b.status)}"></div>
+            <div class="pcard-status-stripe ${isRented ? 'stripe-disewa' : stripeClass(b.status)}"></div>
 
             <div class="pcard-img">
                 ${hasFoto(b)
                     ? `<img src="/${b.foto}" alt="${b.nama}" onerror="this.style.display='none'">`
                     : `<div class="pcard-img-placeholder"><i class="bi bi-bag-heart"></i></div>`
                 }
-                <div class="pcard-stok-badge${stok===0?' stok-0':''}">Stok: ${stok}</div>
+                <div class="pcard-stok-badge${stok===0?' stok-0':''}">${isAvailable ? 'Stok: ' + stok : 'Stok habis'}</div>
 
                 <!-- Hover actions -->
                 <div class="pcard-actions">
@@ -1169,6 +1188,7 @@ function saveEditBarang() {
                 INV_BARANG[idx].stok  = stokParsed;
                 INV_BARANG[idx].total_stok = Object.values(stokParsed).reduce((a,v)=>a+v,0);
                 INV_BARANG[idx].ukuran = document.getElementById('editUkuranLabel').value;
+                INV_BARANG[idx].available = INV_BARANG[idx].total_stok > 0 && INV_BARANG[idx].status === 'Tersedia';
             }
             renderGrid();
             closeEditModal();

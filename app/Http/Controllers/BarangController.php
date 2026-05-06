@@ -14,12 +14,38 @@ class BarangController extends Controller
      */
     public function index()
     {
-        $barang = Barang::all();
+        $barang = Barang::with(['detailTransaksis.transaksi'])->get();
 
         // Statistik ringkasan untuk chips filter
-        $totalBarang    = $barang->count();
-        $barangTersedia = $barang->where('status_barang', 'Tersedia')->count();
-        $barangDisewa   = $barang->where('status_barang', 'Disewa')->count();
+        $barangJson = $barang->map(function ($b) {
+            $stok = [];
+            if ($b->stok) {
+                $decoded = json_decode($b->stok, true);
+                if (is_array($decoded)) $stok = $decoded;
+            }
+
+            $totalStok = array_sum($stok);
+            $activeRental = $b->detailTransaksis->contains(function ($dt) {
+                return ($dt->transaksi?->status_transaksi) === 'Diproses';
+            });
+
+            return [
+                'id'            => $b->id_barang,
+                'nama'          => $b->nama_barang,
+                'ukuran'        => $b->ukuran ?? '',
+                'harga'         => (float) $b->harga_sewa,
+                'status'        => $b->status_barang,
+                'stok'          => $stok,
+                'total_stok'    => $totalStok,
+                'available'     => $totalStok > 0 && $b->status_barang === 'Tersedia',
+                'active_rental' => $activeRental,
+                'foto'          => $b->foto,
+            ];
+        })->values();
+
+        $totalBarang    = $barangJson->count();
+        $barangTersedia = $barangJson->where('available', true)->count();
+        $barangDisewa   = $barangJson->where('active_rental', true)->count();
         $barangLaundry  = $barang->where('status_barang', 'Laundry')->count();
         $barangRusak    = $barang->where('status_barang', 'Rusak')->count();
 
@@ -28,23 +54,6 @@ class BarangController extends Controller
          * Ini menghindari re-request saat user memfilter/mencari —
          * semua data sudah ada di browser, filter bekerja instan.
          */
-        $barangJson = $barang->map(function ($b) {
-            $stok = [];
-            if ($b->stok) {
-                $decoded = json_decode($b->stok, true);
-                if (is_array($decoded)) $stok = $decoded;
-            }
-            return [
-                'id'          => $b->id_barang,
-                'nama'        => $b->nama_barang,
-                'ukuran'      => $b->ukuran ?? '',
-                'harga'       => (float) $b->harga_sewa,
-                'status'      => $b->status_barang,
-                'stok'        => $stok,
-                'total_stok'  => array_sum($stok),
-                'foto'        => $b->foto,
-            ];
-        });
 
         return view('barang.index', compact(
             'barang', 'barangJson',

@@ -102,6 +102,7 @@ a { text-decoration: none; color: inherit; }
 body.sidebar-collapsed .sidebar {
   width: 65px;
   min-width: 65px;
+  overflow: visible;
 }
 
 /* Sembunyikan teks & elemen non-ikon saat collapsed */
@@ -191,6 +192,27 @@ body.sidebar-collapsed .s-user[data-label]::after {
 }
 body.sidebar-collapsed .s-user[data-label]:hover::after {
   opacity: 1;
+}
+
+/* Saat sidebar diperkecil, dropdown profil tidak boleh ikut terpotong */
+body.sidebar-collapsed .profile-dropdown {
+  left: calc(100% + 10px);
+  right: auto;
+  bottom: 8px;
+  width: 220px;
+  border: 1px solid rgba(255,255,255,.1);
+  border-radius: var(--r2);
+  border-bottom: 1px solid rgba(255,255,255,.1);
+  box-shadow: 0 10px 28px rgba(0,0,0,.4);
+}
+
+body.sidebar-collapsed .s-footer {
+  overflow: visible;
+}
+
+body.sidebar-collapsed .s-user {
+  position: relative;
+  z-index: 2;
 }
 
 /* Pastikan sidebar-collapsed tidak override mobile behavior */
@@ -1073,7 +1095,6 @@ body.mob-sidebar-open .sidebar-backdrop {
             <i class="bi bi-layout-sidebar-reverse ico-close"></i>
         </button>
 
-        @if(request()->routeIs('transaksi.*'))
         {{-- ── POS: Logo (reuse elemen sidebar) ── --}}
         <div style="display:flex;align-items:center;gap:10px">
             <div class="logo-words">
@@ -1087,19 +1108,6 @@ body.mob-sidebar-open .sidebar-backdrop {
             <div id="posDate"  style="font-size:10.5px;color:var(--gray-400)">-</div>
         </div>
 
-        @else
-        {{-- ── Default: Breadcrumb & Search ── --}}
-        <nav class="tb-breadcrumb">
-            <span>NM Gallery</span>
-            <span class="sep"> / </span>
-            <span class="cur">@yield('breadcrumb', 'Laporan')</span>
-        </nav>
-        <div class="tb-search">
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
-            <input type="text" placeholder="Cari di sistem...">
-        </div>
-        @endif
-
         {{-- Grup kanan --}}
         <div class="tb-right">
 
@@ -1110,14 +1118,7 @@ body.mob-sidebar-open .sidebar-backdrop {
                 Shift aktif
             </div>
             {{-- ── POS: Pengembalian ── --}}
-            <a href="#" class="btn-outline" id="btnGoKembali"
-              onclick="event.preventDefault();if(window.switchTab)window.switchTab('kembali')"
-              style="color:#1a8050;border-color:rgba(45,166,110,.3);background:rgba(45,166,110,.06)">
-                <i class="bi bi-arrow-return-left"></i> Pengembalian
-                @if($trxAktifCount > 0)
-                <span style="background:{{ $trxTelat > 0 ? '#e03434' : '#2da66e' }};color:#fff;font-size:9px;font-weight:700;padding:1px 6px;border-radius:8px;margin-left:2px">{{ $trxAktifCount }}</span>
-                @endif
-            </a>
+            
 
             @else
             @if($userRole == 'Karyawan')
@@ -1186,6 +1187,30 @@ function toggleSidebar() {
 window.addEventListener('resize', () => {
     if (window.innerWidth > 768) document.body.classList.remove('mob-sidebar-open');
 });
+
+/* ════════════════════════════════════════════════════
+   1b. TOPBAR CLOCK
+   ════════════════════════════════════════════════════ */
+function updateClock() {
+  const now = new Date();
+  const clockEl = document.getElementById('posClock');
+  const dateEl = document.getElementById('posDate');
+
+  if (clockEl) {
+    const hours = String(now.getHours()).padStart(2, '0');
+    const minutes = String(now.getMinutes()).padStart(2, '0');
+    clockEl.textContent = `${hours}:${minutes}`;
+  }
+
+  if (dateEl) {
+    const days = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
+    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agt', 'Sep', 'Okt', 'Nov', 'Des'];
+    dateEl.textContent = `${days[now.getDay()]}, ${now.getDate()} ${months[now.getMonth()]} ${now.getFullYear()}`;
+  }
+}
+
+updateClock();
+setInterval(updateClock, 1000);
 
 /* ════════════════════════════════════════════════════
    2. PROFILE DROPDOWN

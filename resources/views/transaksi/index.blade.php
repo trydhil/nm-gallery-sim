@@ -13,14 +13,21 @@
   $posBarangData = $barangs->map(function($b) {
     $stok = [];
     if ($b->stok) { $decoded = json_decode($b->stok, true); if (is_array($decoded)) $stok = $decoded; }
+    $totalStok = array_sum($stok);
+    $activeRental = $b->detailTransaksis->contains(function ($dt) {
+      return ($dt->transaksi?->status_transaksi) === 'Diproses';
+    });
     return [
-      'id'     => $b->id_barang,
-      'nama'   => $b->nama_barang,
-      'stok'   => $stok,
-      'harga'  => (float) $b->harga_sewa,
-      'status' => $b->status_barang,
-      'foto'   => $b->foto,
-      'ukuran' => $b->ukuran ?? '',
+      'id'            => $b->id_barang,
+      'nama'          => $b->nama_barang,
+      'stok'          => $stok,
+      'harga'         => (float) $b->harga_sewa,
+      'status'        => $b->status_barang,
+      'foto'          => $b->foto,
+      'ukuran'        => $b->ukuran ?? '',
+      'total_stok'    => $totalStok,
+      'available'     => $totalStok > 0 && $b->status_barang === 'Tersedia',
+      'active_rental' => $activeRental,
     ];
   });
 
@@ -34,6 +41,8 @@
     $sisa      = (float)($t->sisa_tagihan ?? 0);
     return [
       'id'                  => $t->id_transaksi,
+      'id_barang'           => $detail->id_barang ?? null,
+      'qty'                 => (int) ($detail->kuantitas ?? 1),
       'no_trx'              => '#TRX-'.str_pad($t->id_transaksi, 4, '0', STR_PAD_LEFT),
       'pelanggan'           => $t->pelanggan->nama_pelanggan ?? '-',
       'barang'              => $detail->barang->nama_barang ?? '-',
@@ -83,12 +92,12 @@
 .pos-tab.active{color:var(--black);font-weight:600;border-bottom-color:var(--pos-gold)}
 .pos-tab-badge{background:var(--pos-gold);color:var(--black);font-size:9.5px;font-weight:700;min-width:18px;height:18px;border-radius:9px;display:flex;align-items:center;justify-content:center;padding:0 4px}
 .pos-tab-badge.red{background:var(--pos-red);color:#fff}
-.pos-tab-pane{display:none;flex:1;overflow:hidden}
-.pos-tab-pane.active{display:flex}
+.pos-tab-pane{display:none;flex:1;overflow:hidden;min-height:0}
+.pos-tab-pane.active{display:flex;min-height:0}
 
 /* ── KATALOG ── */
-.pos-main{display:flex;flex:1;overflow:hidden}
-.pos-catalog{flex:1;display:flex;flex-direction:column;overflow:hidden;background:var(--pos-surface);border-right:1px solid var(--gray-200)}
+.pos-main{display:flex;flex:1;overflow:hidden;min-height:0}
+.pos-catalog{flex:1;display:flex;flex-direction:column;overflow:hidden;background:var(--pos-surface);border-right:1px solid var(--gray-200);min-height:0}
 .pos-cat-top{background:#fff;border-bottom:1px solid var(--pos-border);padding:10px 14px;display:flex;flex-direction:column;gap:8px;flex-shrink:0}
 .pos-search{display:flex;align-items:center;gap:8px;background:var(--pos-surface);border:1.5px solid var(--pos-border2);border-radius:var(--pos-r2);padding:0 11px;transition:.2s}
 .pos-search:focus-within{border-color:var(--pos-gold);background:#fff}
@@ -99,12 +108,12 @@
 .pos-chip{padding:3.5px 12px;border-radius:20px;font-size:11px;font-weight:500;border:1px solid var(--pos-border2);background:#fff;color:var(--pos-muted);cursor:pointer;white-space:nowrap;flex-shrink:0;transition:.12s}
 .pos-chip:hover:not(.active){border-color:var(--pos-gold-dk);color:var(--pos-gold-dk)}
 .pos-chip.active{background:var(--pos-black);border-color:var(--pos-black);color:var(--pos-gold-lt)}
-.pos-grid{flex:1;overflow-y:auto;padding:16px 16px;display:grid;grid-template-columns:repeat(5,1fr);gap:16px;align-content:start}
+.pos-grid{flex:1;overflow-y:auto;padding:16px 16px 60px 16px;display:grid;grid-template-columns:repeat(5,1fr);gap:16px;align-content:start;min-height:0;grid-auto-rows:max-content}
 .pos-grid::-webkit-scrollbar{width:8px}
 .pos-grid::-webkit-scrollbar-thumb{background:var(--gray-300);border-radius:4px}
 
 /* ── PRODUCT CARD ── */
-.pos-card{background:#fff;border:1.5px solid var(--pos-border);border-radius:var(--pos-r2);overflow:hidden;cursor:pointer;transition:.18s;position:relative;display:flex;flex-direction:column;height:100%}
+.pos-card{background:#fff;border:1.5px solid var(--pos-border);border-radius:var(--pos-r2);overflow:hidden;cursor:pointer;transition:.18s;position:relative;display:flex;flex-direction:column;height:100%;min-height:220px}
 .pos-card:hover{border-color:var(--pos-gold);box-shadow:0 3px 14px rgba(201,168,76,.14);transform:translateY(-2px)}
 .pos-card.disewa{opacity:.5;cursor:not-allowed}
 .pos-card.disewa:hover{transform:none;box-shadow:none;border-color:var(--pos-border)}
@@ -709,7 +718,7 @@ const FMT  = n => 'Rp ' + Math.round(n).toLocaleString('id-ID');
 // ── STATE ──
 let posCart=[], posCust=null, posMetode='lunas';
 let posPicked=null, posPickedSz=null, posPickedQty=1, posFilter='Semua';
-const FILTERS = ['Semua','Tersedia','Disewa'];
+const FILTERS = ['Semua','Tersedia','Disewa','Laundry','Rusak'];
 
 // ── CLOCK (update elemen di topbar app.blade) ──
 function updateClock(){
@@ -737,23 +746,35 @@ window.switchTab = switchTab;
 
 // ── CHIPS & GRID ──
 function posRenderChips(){
+  const counts = POS_BARANG.reduce((acc, b) => {
+    acc.Semua += 1;
+    if (b.available) acc.Tersedia += 1;
+    if (b.active_rental) acc.Disewa += 1;
+    if (b.status === 'Laundry') acc.Laundry += 1;
+    if (b.status === 'Rusak') acc.Rusak += 1;
+    return acc;
+  }, { Semua: 0, Tersedia: 0, Disewa: 0, Laundry: 0, Rusak: 0 });
+
   document.getElementById('posChips').innerHTML=FILTERS.map(f=>
-    `<div class="pos-chip${f===posFilter?' active':''}" onclick="posSetFilter('${f}')">${f}</div>`
+    `<div class="pos-chip${f===posFilter?' active':''}" onclick="posSetFilter('${f}')">${f}<span class="pos-chip-count">${counts[f] || 0}</span></div>`
   ).join('');
 }
 function posSetFilter(f){posFilter=f;posRenderGrid();}
 function posRenderGrid(){
   const q=document.getElementById('posSearch').value.toLowerCase();
   const data=POS_BARANG.filter(b=>{
-    if(posFilter==='Tersedia'&&b.status!=='Tersedia')return false;
-    if(posFilter==='Disewa'&&b.status!=='Disewa')return false;
+    if(posFilter==='Tersedia'&&!b.available)return false;
+    if(posFilter==='Disewa'&&!b.active_rental)return false;
+    if(posFilter==='Laundry'&&b.status!=='Laundry')return false;
+    if(posFilter==='Rusak'&&b.status!=='Rusak')return false;
     if(q&&!b.nama.toLowerCase().includes(q))return false;
     return true;
   });
   const grid=document.getElementById('posGrid');
   if(!data.length){grid.innerHTML='<div style="grid-column:1/-1;padding:40px;text-align:center;color:#bbb;font-size:12px">Tidak ada barang yang sesuai</div>';posRenderChips();return;}
   grid.innerHTML=data.map(b=>{
-    const isOut=b.status!=='Tersedia';
+    const isOut=!b.available;
+    const isRented=!!b.active_rental;
     const stokTot=Object.values(b.stok).reduce((a,v)=>a+v,0);
     const hasFoto=b.foto&&b.foto!=='null';
     return `<div class="pos-card${isOut?' disewa':''}" onclick="${isOut?'':'openSizePicker('+b.id+')'}">
@@ -764,7 +785,7 @@ function posRenderGrid(){
       </div>
       <div class="pos-card-body">
         <div class="pos-card-name">${b.nama}</div>
-        <div class="pos-card-meta">${isOut?'Sedang disewa':'Stok: '+stokTot+' pcs'}</div>
+        <div class="pos-card-meta">${isOut ? 'Stok habis' : 'Stok: '+stokTot+' pcs' + (isRented ? ' · Ada yang disewa' : '')}</div>
         <div class="pos-card-price">${FMT(b.harga)}<small>/hari</small></div>
       </div>
     </div>`;

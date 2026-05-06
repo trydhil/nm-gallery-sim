@@ -32,6 +32,11 @@ class Barang extends Model
         $this->stok = json_encode($value);
     }
 
+    public function detailTransaksis()
+    {
+        return $this->hasMany(DetailTransaksi::class, 'id_barang', 'id_barang');
+    }
+
 
     public function syncStatusFromStok(): void
     {
@@ -43,7 +48,9 @@ class Barang extends Model
         $stokArray = $this->getStokPerUkuranAttribute();
         $totalStok = array_sum($stokArray);
 
-        // Status ditentukan murni dari apakah masih ada stok tersisa
+        // Status hanya mengikuti stok total. Kategori "Disewa" untuk UI
+        // dihitung terpisah dari transaksi aktif supaya barang bisa tetap
+        // tampil sebagai Tersedia dan Disewa bersamaan saat stoknya masih ada.
         $this->status_barang = $totalStok > 0 ? 'Tersedia' : 'Disewa';
         $this->save();
     }
@@ -51,9 +58,7 @@ class Barang extends Model
     /**
      * Kurangi stok untuk ukuran tertentu, lalu sync status otomatis.
      * 
-     * Sebelumnya: status langsung di-set 'Disewa' di TransaksiController,
-     * yang menyebabkan seluruh barang terkunci meski ukuran lain masih tersedia.
-     * Sekarang: status diputuskan berdasarkan TOTAL sisa stok semua ukuran.
+    * Status mengikuti transaksi aktif dan sisa stok total.
      */
     public function kurangiStok($ukuran, $jumlah = 1): bool
     {

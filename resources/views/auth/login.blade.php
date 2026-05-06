@@ -110,13 +110,19 @@ input,button{font-family:var(--ff)}
 /* Brand */
 .brand-mark{display:flex;align-items:center;gap:12px;margin-bottom:36px}
 .brand-icon{
-    width:42px;height:42px;border-radius:10px;
-    background:linear-gradient(135deg,var(--gold-lt),var(--gold),var(--gold-dk));
+    width:50px;height:50px;border-radius:10px;
+    
     display:flex;align-items:center;justify-content:center;
     font-family:var(--ff-serif);font-size:22px;font-style:italic;
     color:var(--black);font-weight:700;
-    box-shadow:0 2px 10px rgba(201,168,76,.35),inset 0 1px 0 rgba(255,255,255,.3);
+    
     position:relative;overflow:hidden;
+}
+.brand-icon img{
+    width:100%;
+    height:100%;
+    object-fit:contain;
+    display:block;
 }
 .brand-icon::after{
     content:'';position:absolute;top:-50%;left:-60%;
@@ -267,7 +273,9 @@ input,button{font-family:var(--ff)}
         <div class="form-inner">
 
             <div class="brand-mark">
-                <div class="brand-icon">N</div>
+                <div class="brand-icon">
+                    <img src="{{ asset('uploads/toko/Gallery.png') }}" alt="NM Gallery">
+                </div>
                 <div class="brand-text">
                     <div class="brand-name">NM Gallery</div>
                     <div class="brand-sub">Sistem Informasi Manajemen</div>

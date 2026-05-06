@@ -23,8 +23,9 @@ class TransaksiController extends Controller
  
     public function create()
     {
-        // Barang yang tersedia untuk disewa (untuk katalog POS)
-        $barangs    = Barang::where('status_barang', 'Tersedia')->get();
+        // Ambil semua barang agar chip status dan katalog bisa menampilkan
+        // kondisi aktual: Tersedia, Disewa, Laundry, dan Rusak.
+        $barangs    = Barang::with(['detailTransaksis.transaksi'])->get();
         $pelanggans = Pelanggan::all()->map(fn($p) => [
             'id'    => $p->id_pelanggan,
             'nama'  => $p->nama_pelanggan,
