@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Pengguna;
+use App\Models\Transaksi;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 
@@ -135,6 +136,17 @@ class PenggunaController extends Controller
             return response()->json([
                 'success' => false,
                 'message' => 'Tidak bisa menghapus akun yang sedang aktif!'
+            ]);
+        }
+
+        $masihDiproses = Transaksi::where('id_user', $id)
+            ->where('status_transaksi', 'Diproses')
+            ->exists();
+
+        if ($masihDiproses) {
+            return response()->json([
+                'success' => false,
+                'message' => 'User masih punya transaksi yang sedang berlangsung.'
             ]);
         }
 

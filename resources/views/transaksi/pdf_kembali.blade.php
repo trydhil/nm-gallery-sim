@@ -50,7 +50,7 @@ td.right, th.right { text-align: right; }
     <div>
         <div class="brand-name">NM Gallery</div>
         <div class="brand-sub">Baju Bodo Authentic Collection</div>
-        <div class="brand-addr">Jl. Somba Opu No. 12, Makassar<br>+62 411-xxx-xxxx · @nmgallery.id</div>
+        <div class="brand-addr">Tanete, Kec. Bulukumpa, Kabupaten Bulukumba<br>+62 411-xxx-xxxx · @nmgallery.id</div>
     </div>
     <div class="trx-box">
         <div class="trx-label">No. Transaksi</div>
