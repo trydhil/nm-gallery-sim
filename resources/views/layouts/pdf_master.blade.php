@@ -317,7 +317,7 @@
     <div class="header">
         <h1>NM GALLERY</h1>
         <h3>Baju Bodo Collection</h3>
-        <div class="periode">Jl. Somba Opu No. 12, Makassar</div>
+        <div class="periode">Tanete, Kec. Bulukumpa, Kabupaten Bulukumba</div>
         <div class="periode">Cetak: {{ date('d/m/Y H:i:s') }}</div>
     </div>
 

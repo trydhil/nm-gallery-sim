@@ -11,15 +11,26 @@ class Transaksi extends Model
 
     protected $table = 'transaksi';
     protected $primaryKey = 'id_transaksi';
+
     protected $fillable = [
-        'id_pelanggan', 'id_user', 'tgl_sewa', 'tgl_jatuh_tempo',
-        'tgl_kembali', 'total_biaya', 'total_denda', 'status_transaksi'
+        'id_pelanggan',
+        'id_user',
+        'tgl_sewa',
+        'tgl_jatuh_tempo',
+        'tgl_kembali',
+        'total_biaya',
+        'total_denda',
+        'status_transaksi',
+        // === FIELD BARU ===
+        'metode_bayar',   // 'Lunas' atau 'DP'
+        'jumlah_dp',      // jumlah yang dibayar di muka
+        'sisa_tagihan',   // sisa yang harus dibayar saat kembali
     ];
 
     protected $casts = [
-        'tgl_sewa' => 'date',
-        'tgl_jatuh_tempo' => 'date',
-        'tgl_kembali' => 'date',
+        'tgl_sewa'          => 'date',
+        'tgl_jatuh_tempo'   => 'date',
+        'tgl_kembali'       => 'date',
     ];
 
     public function pelanggan()

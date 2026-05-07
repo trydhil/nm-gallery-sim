@@ -6,7 +6,7 @@
         <div>
             <div class="modal-nota-brand">NM Gallery</div>
             <div class="modal-nota-tagline">Baju Bodo Authentic Collection</div>
-            <div class="modal-nota-addr">Jl. Somba Opu No. 12, Makassar<br>+62 411-xxx-xxxx · @nmgallery.id</div>
+            <div class="modal-nota-addr">Tanete, Kec. Bulukumpa, Kabupaten Bulukumba<br>+62 411-xxx-xxxx · @nmgallery.id</div>
         </div>
         <div class="modal-nota-trxid">
             <div class="label">No. Transaksi</div>

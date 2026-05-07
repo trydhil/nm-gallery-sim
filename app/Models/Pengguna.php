@@ -9,10 +9,10 @@ class Pengguna extends Model
 {
     use HasFactory;
 
-    protected $table = 'pengguna';
+    protected $table      = 'pengguna';
     protected $primaryKey = 'id_user';
-    protected $fillable = [
-        'username', 'password', 'nama_lengkap', 'role'
+    protected $fillable   = [
+        'username', 'password', 'nama_lengkap', 'role', 'email', 'foto'
     ];
 
     protected $hidden = ['password'];
